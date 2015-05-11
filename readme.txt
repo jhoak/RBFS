@@ -7,6 +7,7 @@ The implementation of the NIST model is pretty complete here, although some work
 
 For more information on role-based access control, see the following papers (The latter introduced the idea of RBAC in 1996, and the former proposed a NIST standard for it in 2001):
 
-Ferraiolo, D.F., Sandhu, R.S., and Gavrila, S. Proposed NIST standard for role-based access control. ACM Transactions on    
-  Information and System Security, 4, (3), 224-274.
-Sandhu, R., Coyne, E., Feinstein, H., and Youman, C. Role-based access control models. IEEE Computer, 29, (2), 38-47.
+Ferraiolo, D.F., Sandhu, R.S., and Gavrila, S. Proposed NIST standard for role-based
+  access control. ACM Transactions on Information and System Security, 4, (3), 224-274.
+Sandhu, R., Coyne, E., Feinstein, H., and Youman, C. Role-based access control models. 
+  IEEE Computer, 29, (2), 38-47.
