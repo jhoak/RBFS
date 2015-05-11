@@ -11,7 +11,7 @@ work needs to be done on fixing small bugs and extending the implementation
 to handle more databases, as well as a dynamic set of user-defined roles.
 
 For more information on role-based access control, see the following papers
-(The latter introduced the idea of RBAC in 1996, and the former proposed a
+(The former introduced the idea of RBAC in 1996, and the latter proposed a
 NIST standard for it in 2001):
 
 Ferraiolo, D.F., Sandhu, R.S., and Gavrila, S. Proposed NIST standard for 
