@@ -1,4 +1,4 @@
-This project implements the NIST model of role-based access control, a form of access control in computer security that indirectly assigns access permissions to users based on their "roles" in the system (which can be likened to their jobs in an organization, or their authority). 
+This project implements the NIST model of role-based access control, a form of access control in computer security that indirectly assigns access permissions to users based on their "roles" in the system (which can be likened to their jobs in an organization, or their authority). Included is a file server and client program for reading and modifying files on the server, though appropriate permissions for the user must be granted before they can do any reading/writing.
 
 The project uses a Java client and server with SQLite. The previous version utilized a Microsoft SQL Server 2008-R2 backend, with the Microsoft JDBC driver for SQL Server (ver. 4.1).
 
