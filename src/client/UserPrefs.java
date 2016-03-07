@@ -1,20 +1,22 @@
 package client;
 
 import java.io.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 class UserPrefs {
 
-	private String name, pass, ip;
-	private int port;
+	private String name, pass, ip, port;
 
-	private UserPrefs(String name, String pass, String ip, int port) {
+	private UserPrefs(String name, String pass, String ip, String port) {
 		this.name = name;
 		this.pass = pass;
 		this.ip = ip;
 		this.port = port;
 	}
 
-	static UserPrefs make(String name, String pass, String ip, int port) {
+	static UserPrefs make(String name, String pass, String ip, String port) throws UserPrefs.InvalidPrefsException {
+		checkValid(name, pass, ip, port);
 		return new UserPrefs(name, pass, ip, port);
 	}
 
@@ -30,11 +32,61 @@ class UserPrefs {
 		return ip;
 	}
 
-	int getPort() {
+	String getPort() {
 		return port;
 	}
 
-	static UserPrefs load(String filename) throws LoadException {
+	private static void checkValid(String name, String pass, String ip, String port) throws UserPrefs.InvalidPrefsException {
+		if (!isValidAlphanumeric(name))
+			throw new UserPrefs.InvalidPrefsException("Invalid name: " + name);
+
+		if (!isValidAlphanumeric(pass))
+			throw new UserPrefs.InvalidPrefsException("Invalid password: " + pass);
+
+		if (!isValidIP(ip))
+			throw new UserPrefs.InvalidPrefsException("Invalid IP: " + ip);
+
+		if (!isValidPort(port))
+			throw new UserPrefs.InvalidPrefsException("Invalid port: " + port);
+	}
+
+	private static boolean isValidAlphanumeric(String s) {
+		for (char c : s.toCharArray()) {
+			if (!Character.isLetterOrDigit(c))
+				return false;
+		}
+
+		if (s.equals(""))
+			return false;
+
+		return true;
+	}
+
+	private static boolean isValidIP(String ip) {
+		try {
+			InetAddress.getByName(ip);
+			return true;
+		} 
+		catch (UnknownHostException x) {
+			return false;
+		}
+	}
+
+	private static boolean isValidPort(String port) {
+		try {
+			int portnum = Integer.parseInt(port);
+			if (portnum >= 0 && portnum <= 65535)
+				return true;
+		} 
+		catch (NumberFormatException x) {
+			// Go to finally.
+		} 
+		finally {
+			return false;
+		}
+	}
+
+	static UserPrefs load(String filename) throws UserPrefs.LoadException {
 		try {
 			FileReader fr = new FileReader(filename);
 			StringBuilder sb = new StringBuilder();
@@ -47,12 +99,12 @@ class UserPrefs {
 
 			String fileContents = sb.toString();
 			if (!fileContents.matches("Username=(.*)(\\s+)Password=(.*)(\\s+)IP=(.*)(\\s+)Port=(0-9+)(\\s+)"))
-				throw new LoadException("Invalid prefs file.");
+				throw new UserPrefs.LoadException("Invalid prefs file.");
 
 			return loadFromString(fileContents);
 		}
 		catch (IOException x) {
-			throw new LoadException("Failed to load preferences from file \"" + filename + "\".");
+			throw new UserPrefs.LoadException("Failed to load preferences from file \"" + filename + "\".");
 		}
 	}
 
@@ -76,7 +128,7 @@ class UserPrefs {
 			inputs[0],
 			inputs[1],
 			inputs[2],
-			Integer.parseInt(inputs[3])
+			inputs[3]
 		);
 	}
 
@@ -94,5 +146,27 @@ class UserPrefs {
 
 	private static String cutNextLine(String str) {
 		return str.substring(str.indexOf('\n') + 1, str.length());
+	}
+
+	static class InvalidPrefsException extends Exception {
+
+		InvalidPrefsException() {
+			this(null);
+		}
+
+		InvalidPrefsException(String message) {
+			super(message);
+		}
+	}
+
+	static class LoadException extends FileNotFoundException {
+	
+		LoadException() {
+			this(null);
+		}
+
+		LoadException(String message) {
+			super(message);
+		}
 	}
 }

@@ -1,11 +1,11 @@
 package client;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.net.*;
 import java.io.*;
-import java.util.function.BiConsumer;
+import java.net.*;
+import java.util.function.Consumer;
+import javax.swing.*;
 
 class LoginWindow extends JFrame {
 
@@ -18,7 +18,7 @@ class LoginWindow extends JFrame {
 	private JLabel cnxnLabel;
 	private JButton connectBtn;
 
-	private LoginWindow(FourStringConsumer connectMethod) {
+	private LoginWindow(Consumer<UserPrefs> connectMethod) {
 		setTitle("RBFS Login");
 		setSize(WIDTH, HEIGHT);
 		setResizable(false);
@@ -29,13 +29,18 @@ class LoginWindow extends JFrame {
 
 		try {
 			prefs = UserPrefs.load(PREFS_FILE);
-		} catch (LoadException x) {
-			prefs = UserPrefs.make(
-				"",				// name
-				"",				// password
-				"127.0.0.1",	// IP
-				5001 			// port
-			);
+		} catch (UserPrefs.LoadException x) {
+			try {
+				prefs = UserPrefs.make(
+					"Name",			// name
+					"Password",		// password
+					"127.0.0.1",	// IP
+					"5001" 			// port
+				);
+			}
+			catch (UserPrefs.InvalidPrefsException y) {
+				// Can't fail. No reason to do anything here.
+			}
 		}
 		
 		initConnectButton(connectMethod);
@@ -44,21 +49,13 @@ class LoginWindow extends JFrame {
 		getRootPane().setDefaultButton(connectBtn);
 	}
 
-	public static LoginWindow make(FourStringConsumer connectMethod) {
+	static LoginWindow make(Consumer<UserPrefs> connectMethod) {
 		return new LoginWindow(connectMethod);
 	}
 
-	private void initConnectButton(FourStringConsumer connectMethod) {
+	private void initConnectButton(Consumer<UserPrefs> connectMethod) {
 		connectBtn = new JButton("Connect");
-		connectBtn.addActionListener(new ActionListener() {
-										public void actionPerformed(ActionEvent e) {
-											String name = nameField.getText(),
-													pass = passField.getText(),
-													ip = ipField.getText(),
-													port = portField.getText();
-											connectMethod.accept(name, pass, ip, port);
-										}
-									});
+		connectBtn.addActionListener(new ConnectButtonListener(connectMethod));
 	}
 
 	private Box makeFrontPanel() {
@@ -150,6 +147,33 @@ class LoginWindow extends JFrame {
 			layout.next(pane);
 
 			cnxnLabel.setText("Connecting to " + ipField.getText() + ":" + portField.getText() + "...");
+		}
+	}
+
+	private class ConnectButtonListener implements ActionListener {
+		
+		private Consumer<UserPrefs> connectMethod;
+
+		ConnectButtonListener(Consumer<UserPrefs> connectMethod) {
+			this.connectMethod = connectMethod;
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			String name = nameField.getText(),
+				   pass = passField.getText(),
+				   ip = ipField.getText(),
+			  	   port = portField.getText();
+			try {
+				UserPrefs newPrefs = UserPrefs.make(name, pass, ip, port);
+				prefs = newPrefs;
+				prefs.save(PREFS_FILE);
+
+				connectMethod.accept(prefs);
+			}
+				
+			catch (UserPrefs.InvalidPrefsException x) {
+				JOptionPane.showMessageDialog(null, x.getMessage());
+			}
 		}
 	}
 }
