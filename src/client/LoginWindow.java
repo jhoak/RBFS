@@ -141,12 +141,18 @@ class LoginWindow extends JFrame {
 
 	private class MenuChangeListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
+			String ip = ipField.getText(),
+				   port = portField.getText();
+			if (!UserPrefs.isValidIP(ip) || !UserPrefs.isValidPort(port)) {
+				JOptionPane.showMessageDialog(null, "Error: Please enter a valid IP and a port between 0 and 65535, inclusive.");
+				return;
+			}
+
+			cnxnLabel.setText("Connecting to " + ip + ":" + port + "...");
 			JButton button = (JButton)e.getSource();
 			JPanel pane = getContentPane(button);
 			CardLayout layout = (CardLayout)pane.getLayout();
 			layout.next(pane);
-
-			cnxnLabel.setText("Connecting to " + ipField.getText() + ":" + portField.getText() + "...");
 		}
 	}
 

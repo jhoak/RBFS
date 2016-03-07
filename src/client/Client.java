@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.*;
 import java.util.function.Consumer;
 import java.util.LinkedList;
+import javax.swing.JOptionPane;
 
 public class Client {
 
@@ -29,36 +30,96 @@ public class Client {
 
 			InetAddress addr = InetAddress.getByName(ip);
 			cnxn = new Socket(addr, Integer.parseInt(port));
+			cnxn.setSoTimeout(10000);
 
-			byte[] nameBytes = (name + '\n').getBytes(),
-					passBytes = (pass + '\n').getBytes();
 			OutputStream out = cnxn.getOutputStream();
-			out.write(nameBytes);
-			out.write(passBytes);
-			out.flush();
+			sendLogin(out, name, pass);
 
 			InputStreamReader in = new InputStreamReader(cnxn.getInputStream());
+			getServerMessage(in);
 
-			StringBuilder sb = new StringBuilder();
-			LinkedList<String> roles = new LinkedList<>();
-			int nextchar = in.read();
-			while (nextchar != -1) {
-				if (nextchar != '\n')
-					sb.append((char)nextchar);
-				else {
-					roles.add(sb.toString());
-					sb = new StringBuilder();
-				}
-				nextchar = in.read();
-			}
-			roles.add(sb.toString());
-
+			LinkedList<String> roles = getRoles(in);
 			FileMenu menu = FileMenu.make(roles);
 			menu.setVisible(true);
 			login.setVisible(false);
 
-		} catch (Exception x) {
-			// rekt
+		}
+		catch (FailedLoginException x) {
+			showError(x.getMessage());
+		}
+		catch (SocketTimeoutException x) {
+			showError("Connection timed out.");
+		}
+		catch (IOException x) {
+			showError("Failed to connect.");
+		}
+	}
+
+	private static void sendLogin(OutputStream out, String name, String pass) throws IOException {
+		byte[] nameBytes = (name + '\n').getBytes(),
+			   passBytes = (pass + '\n').getBytes();
+		out.write(nameBytes);
+		out.write(passBytes);
+		out.flush();
+	}
+
+	private static void getServerMessage(InputStreamReader in) throws IOException, SocketTimeoutException, 
+																					 FailedLoginException {
+		StringBuilder sb = new StringBuilder();
+		int nextch = in.read();
+		while (nextch != '\n' && nextch != -1) {
+			sb.append((char)nextch);
+			nextch = in.read();
+		}
+		checkServerMessage(sb.toString());
+	}
+
+	private static void checkServerMessage(String message) throws FailedLoginException {
+		String errorMessage = "";
+		if (message.equals("BAD LOGIN")) {
+			errorMessage = "Unrecognized username/password combination.";
+		}
+		else if (message.equals("NO ROLES")) {
+			errorMessage = "No roles assigned to user.";
+		}
+		else if (!message.equals("OK")) {
+			errorMessage = "Unknown error occurred.";
+		}
+
+		if (!errorMessage.equals(""))
+			throw new FailedLoginException(errorMessage);
+	}
+
+	private static LinkedList<String> getRoles(InputStreamReader in) throws IOException, SocketTimeoutException {
+		LinkedList<String> roles = new LinkedList<>();
+		StringBuilder sb = new StringBuilder();
+		int nextch = in.read();
+		while (nextch != -1) {
+			if (nextch != '\n')
+				sb.append((char)nextch);
+			else {
+				roles.add(sb.toString());
+				sb = new StringBuilder();
+			}
+			nextch = in.read();
+		}
+		roles.add(sb.toString());
+
+		return roles;
+	}
+
+	private static void showError(String message) {
+		JOptionPane.showMessageDialog(null, "Error: " + message);
+	}
+
+	private static class FailedLoginException extends Exception {
+
+		FailedLoginException() {
+			this(null);
+		}
+
+		FailedLoginException(String message) {
+			super(message);
 		}
 	}
 }
