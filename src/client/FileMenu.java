@@ -19,7 +19,7 @@ class FileMenu extends JFrame {
 	private JButton openBtn;
 
 	private FileMenu(LinkedList<String> roles, Runnable logoutMethod, 
-						 Consumer<String> openMethod, Function<LinkedList<String>, String> fileInfoMethod) {
+					 FOConsumer openMethod, FIFunction fileInfoMethod) {
 		setTitle("File Menu");
 		setSize(WIDTH, HEIGHT);
 		setResizable(false);
@@ -35,7 +35,7 @@ class FileMenu extends JFrame {
 	}
 
 	static FileMenu make(LinkedList<String> roles, Runnable logoutMethod, 
-						 Consumer<String> openMethod, Function<LinkedList<String>, String> fileInfoMethod) {
+						 FOConsumer openMethod, FIFunction fileInfoMethod) {
 		return new FileMenu(roles, logoutMethod, openMethod, fileInfoMethod);
 	}
 
@@ -57,7 +57,7 @@ class FileMenu extends JFrame {
 		return panel;
 	}
 
-	private JPanel makeFileListPanel(Consumer<String> openMethod) {
+	private JPanel makeFileListPanel(FOConsumer openMethod) {
 		String[] messageArr = {"No files here (yet)! Select a role to get started!"};
 		JList<String> fileList = new JList<>(messageArr);
 		fileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -72,22 +72,22 @@ class FileMenu extends JFrame {
 		return panel;
 	}
 
-	private JPanel makeBottomPanel(LinkedList<String> roles, Consumer<String> openMethod, 
-								     Function<LinkedList<String>, String> fileInfoMethod) {
+	private JPanel makeBottomPanel(LinkedList<String> roles, FOConsumer openMethod, 
+								   FIFunction fileInfoMethod) {
 		JPanel bottomPanel = new JPanel(new GridLayout(1,2));
 		bottomPanel.add(makeDetailsBox(openMethod));
 		bottomPanel.add(makeRolesBox(roles, fileInfoMethod));
 		return bottomPanel;
 	}
 
-	private Box makeDetailsBox(Consumer<String> openMethod) {
+	private Box makeDetailsBox(FOConsumer openMethod) {
 		Box detailsBox = new Box(BoxLayout.Y_AXIS);
 		detailsBox.add(makeFileNamePanel(openMethod));
 		detailsBox.add(makeDetailsPanel());
 		return detailsBox;
 	}
 
-	private JPanel makeFileNamePanel(Consumer<String> openMethod) {
+	private JPanel makeFileNamePanel(FOConsumer openMethod) {
 		openBtn = new JButton("Open");
 		openBtn.setEnabled(false);
 		openBtn.addActionListener(new OpenButtonListener(openMethod));
@@ -115,7 +115,7 @@ class FileMenu extends JFrame {
 		return detailsPanel;
 	}
 
-	private Box makeRolesBox(LinkedList<String> roles, Function<LinkedList<String>, String> fileInfoMethod) {
+	private Box makeRolesBox(LinkedList<String> roles, FIFunction fileInfoMethod) {
 		Box rolesBox = new Box(BoxLayout.Y_AXIS);
 		rolesBox.setBorder(BorderFactory.createTitledBorder("Roles"));
 
@@ -140,7 +140,7 @@ class FileMenu extends JFrame {
 		return panel;
 	}
 
-	private JPanel makeRoleAdderPanel(LinkedList<String> roles, Function<LinkedList<String>, String> fileInfoMethod) {
+	private JPanel makeRoleAdderPanel(LinkedList<String> roles, FIFunction fileInfoMethod) {
 		JLabel addLabel = new JLabel("Add/delete role:");
 		String[] roleArr = listToArray(roles);
 		JComboBox<String> roleBox = new JComboBox<>(roleArr);
@@ -177,12 +177,12 @@ class FileMenu extends JFrame {
 
 	private static class ComboBoxListener implements ActionListener {
 
-		private Function<LinkedList<String>, String> fileInfoMethod;
+		private FIFunction fileInfoMethod;
 
-		ComboBoxListener(Function<LinkedList<String>, String> fileInfoMethod) {
+		ComboBoxListener(FIFunction fileInfoMethod) {
 			this.fileInfoMethod = fileInfoMethod;
 		}
-		
+
 		public void actionPerformed(ActionEvent e) {
 			// similar ribble
 		}
@@ -190,9 +190,9 @@ class FileMenu extends JFrame {
 
 	private static class OpenButtonListener implements ActionListener {
 
-		private Consumer<String> openMethod;
+		private FOConsumer openMethod;
 
-		OpenButtonListener(Consumer<String> openMethod) {
+		OpenButtonListener(FOConsumer openMethod) {
 			this.openMethod = openMethod;
 		}
 
@@ -203,9 +203,9 @@ class FileMenu extends JFrame {
 
 	private static class FileClickListener extends MouseAdapter {
 
-		private Consumer<String> openMethod;
+		private FOConsumer openMethod;
 
-		FileClickListener(Consumer<String> openMethod) {
+		FileClickListener(FOConsumer openMethod) {
 			this.openMethod = openMethod;
 		}
 
