@@ -2,13 +2,14 @@ package client;
 
 import java.io.*;
 import java.net.*;
-import java.util.function.Consumer;
+import java.util.function.*;
 import java.util.LinkedList;
 import javax.swing.JOptionPane;
 
 public class Client {
 
 	private static LoginWindow login;
+	private static FileMenu fileMenu;
 	private static Socket cnxn;
 
 	public static void main(String[] args) {
@@ -39,8 +40,11 @@ public class Client {
 			getServerMessage(in);
 
 			LinkedList<String> roles = getRoles(in);
-			FileMenu menu = FileMenu.make(roles);
-			menu.setVisible(true);
+			Runnable logoutMethod = Client::logout;
+			Consumer<String> openMethod = getFileOpenMethod();
+			Function<LinkedList<String>, String> fileInfoMethod = getFileInfoMethod();
+			fileMenu = FileMenu.make(roles, logoutMethod, openMethod, fileInfoMethod);
+			fileMenu.setVisible(true);
 			login.setVisible(false);
 
 		}
@@ -106,6 +110,34 @@ public class Client {
 		roles.add(sb.toString());
 
 		return roles;
+	}
+
+	private static void logout() {
+		try {
+			cnxn.close();
+		} catch (IOException x) {
+			/* Do nothing and move on (socket is unusable anyway, so just make 
+			   a new connection later if necessary) */
+		}
+		fileMenu.setVisible(false);
+		fileMenu = null;
+		cnxn = null;
+		login.setVisible(true);
+	}
+
+	private static Consumer<String> getFileOpenMethod() {
+		return (s) -> openFile(s);
+	}
+
+	private static void openFile(String fileName) {
+	}
+
+	private static Function<LinkedList<String>, String> getFileInfoMethod() {
+		return (list) -> getFileInfo(list);
+	}
+
+	private static String getFileInfo(LinkedList<String> roles) {
+		return "";
 	}
 
 	private static void showError(String message) {
