@@ -13,8 +13,8 @@ class FileMenu extends JFrame {
 	private static final int WIDTH = 600,
 							 HEIGHT = 450;
 
-	private LinkedList<String> roles, selectedRoles;
-	private JScrollPane fileListPane;
+	private JList<String> fileList;
+	private LabelSet labels;
 	private JLabel nameLabel, authLabel, sizeLabel, dateMadeLabel, dateModdedLabel, rolesLabel;
 	private JButton openBtn;
 
@@ -27,8 +27,6 @@ class FileMenu extends JFrame {
 		setLocation((int)(screenDim.getWidth() / 2.0 - WIDTH / 2), (int)(screenDim.getHeight() / 2.0 - HEIGHT / 2));
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		
-		selectedRoles = new LinkedList<>();
-
 		add(makeTopPanel(logoutMethod), BorderLayout.NORTH);
 		add(makeFileListPanel(openMethod), BorderLayout.CENTER);
 		add(makeBottomPanel(roles, openMethod, fileInfoMethod), BorderLayout.SOUTH);
@@ -52,51 +50,45 @@ class FileMenu extends JFrame {
 		logoutButton.addActionListener(new LogoutListener(logoutMethod));
 
 		JPanel panel = new JPanel();
-		panel.add(topLabel);
-		panel.add(logoutButton);
-		return panel;
+		return addComponents(panel, topLabel, logoutButton);
 	}
 
 	private JPanel makeFileListPanel(FOConsumer openMethod) {
 		String[] messageArr = {"No files here (yet)! Select a role to get started!"};
-		JList<String> fileList = new JList<>(messageArr);
+		fileList = new JList<>(messageArr);
 		fileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		fileList.addListSelectionListener(new FileSelectionListener());
-		fileList.addMouseListener(new FileClickListener(openMethod));
+		fileList.addMouseListener(new OpenListener(openMethod, fileList));
 		fileList.setEnabled(false);
 
-		fileListPane = new JScrollPane(fileList);
-		
-		JPanel panel = new JPanel();
-		panel.add(fileListPane);
-		return panel;
+		JScrollPane fileListPane = new JScrollPane(fileList);
+		return addComponents(new JPanel(), fileListPane);
 	}
 
 	private JPanel makeBottomPanel(LinkedList<String> roles, FOConsumer openMethod, 
 								   FIFunction fileInfoMethod) {
-		JPanel bottomPanel = new JPanel(new GridLayout(1,2));
-		bottomPanel.add(makeDetailsBox(openMethod));
-		bottomPanel.add(makeRolesBox(roles, fileInfoMethod));
-		return bottomPanel;
+		return addComponents(
+			new JPanel(new GridLayout(1,2)),
+			makeDetailsBox(openMethod),
+			makeRolesBox(roles, fileInfoMethod)
+		);
 	}
 
 	private Box makeDetailsBox(FOConsumer openMethod) {
-		Box detailsBox = new Box(BoxLayout.Y_AXIS);
-		detailsBox.add(makeFileNamePanel(openMethod));
-		detailsBox.add(makeDetailsPanel());
-		return detailsBox;
+		return addComponents(
+			new Box(BoxLayout.Y_AXIS),
+			makeFileNamePanel(openMethod),
+			makeDetailsPanel()
+		);
 	}
 
 	private JPanel makeFileNamePanel(FOConsumer openMethod) {
 		openBtn = new JButton("Open");
 		openBtn.setEnabled(false);
-		openBtn.addActionListener(new OpenButtonListener(openMethod));
+		openBtn.addActionListener(new OpenListener(openMethod, fileList));
 		nameLabel = new JLabel("");
 
-		JPanel namePanel = new JPanel();
-		namePanel.add(openBtn);
-		namePanel.add(nameLabel);
-		return namePanel;
+		return addComponents(new JPanel(), openBtn, nameLabel);
 	}
 
 	private JPanel makeDetailsPanel() {
@@ -105,13 +97,14 @@ class FileMenu extends JFrame {
 		dateMadeLabel = new JLabel("<Date created>");
 		dateModdedLabel = new JLabel("<Date modified>");
 		
-		JPanel detailsPanel = new JPanel(new GridLayout(2,2));
-		detailsPanel.add(authLabel);
-		detailsPanel.add(sizeLabel);
-		detailsPanel.add(dateMadeLabel);
-		detailsPanel.add(dateModdedLabel);
+		JPanel detailsPanel = addComponents(
+			new JPanel(new GridLayout(2,2)),
+			authLabel,
+			sizeLabel,
+			dateMadeLabel,
+			dateModdedLabel
+		);
 		detailsPanel.setBorder(BorderFactory.createTitledBorder("File Details"));
-
 		return detailsPanel;
 	}
 
@@ -119,25 +112,22 @@ class FileMenu extends JFrame {
 		Box rolesBox = new Box(BoxLayout.Y_AXIS);
 		rolesBox.setBorder(BorderFactory.createTitledBorder("Roles"));
 
-		rolesBox.add(makeRoleHeaderPanel());
-		rolesBox.add(makeRolesPanel());
-		rolesBox.add(makeRoleAdderPanel(roles, fileInfoMethod));
-
-		return rolesBox;
+		return addComponents(
+			rolesBox, 
+			makeRoleHeaderPanel(), 
+			makeRolesPanel(), 
+			makeRoleAdderPanel(roles, fileInfoMethod)
+		);
 	}
 
 	private JPanel makeRoleHeaderPanel() {
 		JLabel header = new JLabel("You are currently in a session with the following roles:");
-		JPanel panel = new JPanel();
-		panel.add(header);
-		return panel;
+		return addComponents(new JPanel(), header);
 	}
 
 	private JPanel makeRolesPanel() {
 		rolesLabel = new JLabel("(No roles selected.)");
-		JPanel panel = new JPanel();
-		panel.add(rolesLabel);
-		return panel;
+		return addComponents(new JPanel(), rolesLabel);
 	}
 
 	private JPanel makeRoleAdderPanel(LinkedList<String> roles, FIFunction fileInfoMethod) {
@@ -146,10 +136,7 @@ class FileMenu extends JFrame {
 		JComboBox<String> roleBox = new JComboBox<>(roleArr);
 		roleBox.addActionListener(new ComboBoxListener(fileInfoMethod));
 
-		JPanel panel = new JPanel();
-		panel.add(addLabel);
-		panel.add(roleBox);
-		return panel;
+		return addComponents(new JPanel(), addLabel, roleBox);
 	}
 
 	private static String[] listToArray(LinkedList<String> list) {
@@ -162,6 +149,28 @@ class FileMenu extends JFrame {
 		return arr;
 	}
 
+	private static JPanel addComponents(JPanel panel, Component... comps) {
+		for (Component c : comps)
+			panel.add(c);
+		return panel;
+	}
+
+	private static Box addComponents(Box box, Component... comps) {
+		for (Component c : comps)
+			box.add(c);
+		return box;
+	}
+
+	private static void openFile(FOConsumer openMethod, JList<String> fileList) {
+		String selectedFile = getSelectedFile(fileList);
+		if (selectedFile != null)
+			openMethod.accept(selectedFile);
+	}
+
+	private static String getSelectedFile(JList<String> fileList) {
+		return fileList.getSelectedValue();
+	}
+
 	private static class LogoutListener implements ActionListener {
 
 		private Runnable logoutMethod;
@@ -171,7 +180,7 @@ class FileMenu extends JFrame {
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			// similar ribble
+			logoutMethod.run();
 		}
 	}
 
@@ -188,33 +197,25 @@ class FileMenu extends JFrame {
 		}
 	}
 
-	private static class OpenButtonListener implements ActionListener {
+	private static class OpenListener extends MouseAdapter
+									  implements ActionListener {
 
 		private FOConsumer openMethod;
+		private JList<String> fileList;
 
-		OpenButtonListener(FOConsumer openMethod) {
+		OpenListener(FOConsumer openMethod, JList<String> fileList) {
 			this.openMethod = openMethod;
+			this.fileList = fileList;
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			// similar ribble
-		}
-	}
-
-	private static class FileClickListener extends MouseAdapter {
-
-		private FOConsumer openMethod;
-
-		FileClickListener(FOConsumer openMethod) {
-			this.openMethod = openMethod;
+			openFile(openMethod, fileList);
 		}
 
 		public void mouseClicked(MouseEvent e) {
-			JList list = (JList)e.getSource();
 			if (e.getClickCount() >= 2) {
-				// double click
+				openFile(openMethod, fileList);
 			}
-			// other ideas?
 		}
 	}
 

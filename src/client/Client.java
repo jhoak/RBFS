@@ -124,36 +124,57 @@ public class Client {
 		login.setVisible(true);
 	}
 
-	private static void openFile(String fileName) throws IOException, SocketTimeoutException {
-		sendMessage("OPEN FILE " + fileName.toUpperCase());
+	private static void openFile(String fileName) {
+		try {
+			sendMessage("OPEN FILE " + fileName.toUpperCase());
 		
-		String responseHead = getResponseHead();
-		if (responseHead.equals("ERROR: FILE NOT FOUND"))
-			showError("Error: file inaccessible.");
-		else {
-			String contents = getRestOfResponse();
-			exitViewer();
-			viewer = FileViewer.make(contents);
-			viewer.setVisible(true);
+			String responseHead = getResponseHead();
+			if (responseHead.equals("ERROR: FILE NOT FOUND"))
+				showError("File inaccessible.");
+			else {
+				String contents = getRestOfResponse();
+				exitViewer();
+				viewer = FileViewer.make(contents);
+				viewer.setVisible(true);
+			}
+		}
+		catch (SocketTimeoutException x) {
+			logout();
+			showError("The server failed to respond.");
+		}
+		catch (IOException x) {
+			logout();
+			showError("Failed to communicate with the server.");
 		}
 	}
 
-	private static String getFileInfo(LinkedList<String> roles) throws BadPermissionsException, IOException,
-																					SocketTimeoutException {
-		exitViewer();
-		sendMessage(makeFileInfoCommand(roles));
+	private static String getFileInfo(LinkedList<String> roles) throws BadPermissionsException, IOException {
+		try {
+			exitViewer();
+			sendMessage(makeFileInfoCommand(roles));
 
-		String responseHead = getResponseHead();
-		if (responseHead.equals("ERROR: NO ACCESSIBLE FILES"))
-			throw new BadPermissionsException("Error: no files accessible with current roles.");
+			String responseHead = getResponseHead();
+			if (responseHead.equals("ERROR: NO ACCESSIBLE FILES"))
+				throw new BadPermissionsException("Error: no files accessible with current roles.");
 
-		String rest = getRestOfResponse();
-		if (responseHead.equals("ERROR: ROLE CONFLICTS PRESENT")) {
-			String errorMessage = "Error: Conflicting roles: " + rest;
-			throw new BadPermissionsException(errorMessage);
-		}
+			String rest = getRestOfResponse();
+			if (responseHead.equals("ERROR: ROLE CONFLICTS PRESENT")) {
+				String errorMessage = "Error: Conflicting roles: " + rest;
+				throw new BadPermissionsException(errorMessage);
+			}
 			
-		return rest;
+			return rest;
+		}
+		catch (SocketTimeoutException x) {
+			logout();
+			showError("The server failed to respond.");
+			throw new IOException(x.getMessage());
+		}
+		catch (IOException x) {
+			logout();
+			showError("Failed to communicate with the server.");
+			throw new IOException(x.getMessage());
+		}
 	}
 
 	private static String makeFileInfoCommand(LinkedList<String> roles) {
