@@ -52,8 +52,11 @@ class FileMenu extends JFrame {
 											public void valueChanged(ListSelectionEvent e) {
 												RBFSFile file = fileList.getSelectedValue();
 												if (file != null) {
+													String name = file.getName();
+													if (name.startsWith(".. ("))
+														name = name.substring(4, name.length() - 1);
 													labels.setText(
-														file.getName(),
+														name,
 														"Author: " + file.getAuthor(),
 														"Size: " + file.getSize(),
 														"Date created: " + file.getDateMade(),

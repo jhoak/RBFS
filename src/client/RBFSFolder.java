@@ -34,10 +34,11 @@ class RBFSFolder extends RBFSFile {
 		FileAttributes attrs = new FileAttributes("", "", "", "", "");
 		RBFSFolder root = new RBFSFolder(attrs);
 		root.addFiles(getFolderContents(tokens, 0, tokens.length - 1));
+		root.addParentLinksInTree();
 		return root;
 	}
 
-	static LinkedList<RBFSFile> getFolderContents(String[] tokens, int start, int end) {
+	private static LinkedList<RBFSFile> getFolderContents(String[] tokens, int start, int end) {
 		LinkedList<RBFSFile> contents = new LinkedList<>();
 		int index = start;
 		while (index <= end) {
@@ -73,5 +74,36 @@ class RBFSFolder extends RBFSFile {
 				throw new IllegalArgumentException("ERROR: Bad input string.");
 		}
 		return contents;
+	}
+
+	private void addParentLinksInTree() {
+		for (RBFSFile f : files) {
+			if (f.getStorageType() == StorageType.FOLDER) {
+				RBFSFolder folder = (RBFSFolder)f;
+				folder.addParentLinksInTree();
+				folder.addParentLink();
+			}
+		}
+	}
+
+	private void addParentLink() {
+		RBFSFolder parent = getParent();
+		String name = parent.getName();
+
+		String newName;
+		if (name.startsWith(".. (") && name.endsWith(")"))
+			newName = name;
+		else
+			newName = ".. (" + name + ")";
+
+		String auth = parent.getAuthor(),
+			   size = parent.getSize(),
+			   dateMade = parent.getDateMade(),
+			   dateModded = parent.getDateModded();
+		FileAttributes newAttrs = new FileAttributes(newName, auth, size, dateMade, dateModded);
+
+		RBFSFolder parentLink = new RBFSFolder(newAttrs);
+		parentLink.addFiles(parent.getFiles());
+		addFile(parentLink);
 	}
 }

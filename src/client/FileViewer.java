@@ -1,13 +1,15 @@
 package client;
 
-public class FileViewer {
-	public FileViewer(String s) {
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+
+public class FileViewer extends JFrame {
+
+	static FileViewer make(String fileContents) {
+		return new FileViewer(fileContents);
 	}
 
-	public static FileViewer make(String s) {
-		return new FileViewer(s);
-	}
-
-	public void setVisible(boolean b) {
+	private FileViewer(String fileContents) {
 	}
 }
