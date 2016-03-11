@@ -38,7 +38,7 @@ public class Client {
 			Runnable logoutMethod = Client::logout;
 			FOConsumer openMethod = (s) -> openFile(s);
 			FIFunction fileInfoMethod = (list) -> getFileInfo(list);
-			fileMenu = FileMenu.make(roles, logoutMethod, openMethod, fileInfoMethod);
+			fileMenu = FileMenu.make(roles, logoutMethod, fileInfoMethod, openMethod);
 			fileMenu.setVisible(true);
 			login.setVisible(false);
 

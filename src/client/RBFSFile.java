@@ -2,36 +2,39 @@ package client;
 
 class RBFSFile {
 
-	private FileAttributes attributes;
+	private FileAttributes attrs;
 	private RBFSFolder parent;
 
-	RBFSFile(FileAttributes attributes, RBFSFolder parent) {
-		this.attributes = attributes;
-		this.parent = parent;
+	RBFSFile(FileAttributes attrs) {
+		this.attrs = attrs;
 	}
 
 	String getName() {
-		return attributes.getName();
+		return attrs.getName();
 	}
 
 	String getAuthor() {
-		return attributes.getAuthor();
+		return attrs.getAuthor();
 	}
 
 	String getSize() {
-		return attributes.getSize();
+		return attrs.getSize();
 	}
 
 	String getDateMade() {
-		return attributes.getDateMade();
+		return attrs.getDateMade();
 	}
 
 	String getDateModded() {
-		return attributes.getDateModded();
+		return attrs.getDateModded();
 	}
 
 	RBFSFolder getParent() {
 		return parent;
+	}
+
+	void setParent(RBFSFolder parent) {
+		this.parent = parent;
 	}
 
 	StorageType getStorageType() {

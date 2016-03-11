@@ -14,15 +14,22 @@ class FileMenu extends JFrame {
 							 HEIGHT = 450;
 
 	private LabelSet labels;
+	private JList<RBFSFile> fileList;
+	private Runnable logoutMethod;
+	private FIFunction fileInfoMethod;
+	private FOConsumer openMethod;
 
 	static FileMenu make(LinkedList<String> roles, Runnable logoutMethod,
-							FOConsumer openMethod, FIFunction fileInfoMethod) {
+						 FIFunction fileInfoMethod, FOConsumer openMethod) {
 
-		return new FileMenu(roles, logoutMethod, openMethod, fileInfoMethod);
+		return new FileMenu(roles, logoutMethod, fileInfoMethod, openMethod);
 	}
 
 	private FileMenu(LinkedList<String> roles, Runnable logoutMethod,
-						FOConsumer openMethod, FIFunction fileInfoMethod) {
+					 FIFunction fileInfoMethod, FOConsumer openMethod) {
+		this.logoutMethod = logoutMethod;
+		this.fileInfoMethod = fileInfoMethod;
+		this.openMethod = openMethod;
 
 		setTitle("File Menu");
 		setSize(WIDTH, HEIGHT);
@@ -31,19 +38,28 @@ class FileMenu extends JFrame {
 		setLocation((int)(screenDim.getWidth() / 2.0 - WIDTH / 2), (int)(screenDim.getHeight() / 2.0 - HEIGHT / 2));
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-		JPanel topPanel = makeTopPanel(logoutMethod);
+		JPanel topPanel = makeTopPanel();
 		add(topPanel, BorderLayout.NORTH);
 
-		JList<RBFSFile> fileList = initFileList(openMethod);
-		JPanel fileListPanel = makeFileListPanel(fileList);
+		fileList = initFileList();
+		JPanel fileListPanel = makeFileListPanel();
 		add(fileListPanel, BorderLayout.CENTER);
 
-		Box detailsBox = makeDetailsBox(fileList, openMethod),
+		Box detailsBox = makeDetailsBox(),
 			rolesBox = makeRolesBox(roles);
 
 		fileList.addListSelectionListener(new ListSelectionListener() {
 											public void valueChanged(ListSelectionEvent e) {
-
+												RBFSFile file = fileList.getSelectedValue();
+												if (file != null) {
+													labels.setText(
+														file.getName(),
+														"Author: " + file.getAuthor(),
+														"Size: " + file.getSize(),
+														"Date created: " + file.getDateMade(),
+														"Date modified: " + file.getDateModded()
+													);
+												}
 											}
 										  });
 
@@ -51,7 +67,7 @@ class FileMenu extends JFrame {
 		add(bottomPanel, BorderLayout.SOUTH);
 	}
 
-	private JPanel makeTopPanel(Runnable logoutMethod) {
+	private JPanel makeTopPanel() {
 		JLabel topLabel = new JLabel("Available files:\t\t\t");
 		Font labelFont = topLabel.getFont();
 		topLabel.setFont(new Font(
@@ -71,21 +87,21 @@ class FileMenu extends JFrame {
 		return topPanel;
 	}
 
-	private static JList<RBFSFile> initFileList(FOConsumer openMethod) {
+	private JList<RBFSFile> initFileList() {
 		JList<RBFSFile> fileList = new JList<>();
 		fileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		fileList.addMouseListener(new OpenListener(fileList, openMethod));
+		fileList.addMouseListener(new OpenListener());
 		return fileList;
 	}
 
-	private static JPanel makeFileListPanel(JList<RBFSFile> fileList) {
+	private JPanel makeFileListPanel() {
 		JScrollPane fileListScrollPane = new JScrollPane(fileList);
 		JPanel fileListPanel = new JPanel();
 		fileListPanel.add(fileListScrollPane);
 		return fileListPanel;
 	}
 
-	private Box makeDetailsBox(JList<RBFSFile> fileList, FOConsumer openMethod) {
+	private Box makeDetailsBox() {
 		JLabel nameLabel = new JLabel(""),
 			   authLabel = new JLabel("<Author>"),
 			   sizeLabel = new JLabel("<Size>"),
@@ -93,7 +109,7 @@ class FileMenu extends JFrame {
 			   dateModdedLabel = new JLabel("<Date modified>");
 		labels = new LabelSet(nameLabel, authLabel, sizeLabel, sizeLabel, dateMadeLabel, dateModdedLabel);
 
-		JPanel upperPanel = makeUpperDetailsPanel(fileList, openMethod, nameLabel),
+		JPanel upperPanel = makeUpperDetailsPanel(nameLabel),
 			   lowerPanel = makeLowerDetailsPanel(authLabel, sizeLabel, dateMadeLabel, dateModdedLabel);
 		
 		Box detailsBox = new Box(BoxLayout.Y_AXIS);
@@ -102,9 +118,9 @@ class FileMenu extends JFrame {
 		return detailsBox;
 	}
 
-	private static JPanel makeUpperDetailsPanel(JList<RBFSFile> fileList, FOConsumer openMethod, JLabel nameLabel) {
+	private JPanel makeUpperDetailsPanel(JLabel nameLabel) {
 		JButton openBtn = new JButton("Open");
-		openBtn.addActionListener(new OpenListener(fileList, openMethod));
+		openBtn.addActionListener(new OpenListener());
 
 		JPanel upperPanel = new JPanel();
 		upperPanel.add(openBtn);
@@ -112,7 +128,7 @@ class FileMenu extends JFrame {
 		return upperPanel;
 	}
 
-	private static JPanel makeLowerDetailsPanel(JLabel authLabel, JLabel sizeLabel, 
+	private JPanel makeLowerDetailsPanel(JLabel authLabel, JLabel sizeLabel, 
 												JLabel dateMadeLabel, JLabel dateModdedLabel) {
 		JPanel lowerPanel = new JPanel(new GridLayout(2,2));
 		lowerPanel.add(authLabel);
@@ -138,25 +154,52 @@ class FileMenu extends JFrame {
 		return rolesBox;
 	}
 
-	private static JPanel makeHeaderPanel() {
+	private JPanel makeHeaderPanel() {
 		JLabel header = new JLabel("You are currently in a session with the following roles:");
 		JPanel headerPanel = new JPanel();
 		headerPanel.add(header);
 		return headerPanel;
 	}
 
-	private static JPanel makeRoleDisplayPanel(JLabel rolesLabel) {
+	private JPanel makeRoleDisplayPanel(JLabel rolesLabel) {
 		JPanel rolePanel = new JPanel();
 		rolePanel.add(rolesLabel);
 		return rolePanel;
 	}
 
-	private static JPanel makeRoleAdderPanel(LinkedList<String> roles) {
+	private JPanel makeRoleAdderPanel(LinkedList<String> roles) {
 		JLabel addLabel = new JLabel("Add/delete role:");
 		String[] roleArr = listToArray(roles);
 		JComboBox<String> roleComboBox = new JComboBox<>(roleArr);
 		roleComboBox.addActionListener(new ActionListener() {
+
+											private LinkedList<String> selectedRoles = new LinkedList<>();
+
 											public void actionPerformed(ActionEvent e) {
+												JComboBox<String> box = (JComboBox<String>)e.getSource();
+												String role = (String)box.getSelectedItem();
+												if (selectedRoles.contains(role))
+													selectedRoles.remove(role);
+												else
+													selectedRoles.add(role);
+												try {
+													String svrResponse = fileInfoMethod.accept(selectedRoles);
+													RBFSFolder root = RBFSFolder.makeDirectoryTree(svrResponse);
+													fileList.setListData(listToArray(root.getFiles()));
+												}
+												catch (Client.BadPermissionsException x) {
+													JOptionPane.showMessageDialog(
+														null,
+														"Error: Inadequate permissions."
+													);
+												}
+												catch (IOException x) {
+													JOptionPane.showMessageDialog(
+														null,
+														"Error: Failed to communicate with server."
+													);
+													logoutMethod.run();
+												}
 											}
 								  		});
 
@@ -166,7 +209,7 @@ class FileMenu extends JFrame {
 		return adderPanel;
 	}
 
-	private static JPanel makeBottomPanel(Box detailsBox, Box rolesBox) {
+	private JPanel makeBottomPanel(Box detailsBox, Box rolesBox) {
 		JPanel bottomPanel = new JPanel(new GridLayout(1, 2));
 		bottomPanel.add(detailsBox);
 		bottomPanel.add(rolesBox);
@@ -183,16 +226,8 @@ class FileMenu extends JFrame {
 		return arr;
 	}
 
-	private static class OpenListener extends MouseAdapter
-									  implements ActionListener {
-
-		private JList<RBFSFile> fileList;
-		private FOConsumer openMethod;
-
-		OpenListener(JList<RBFSFile> fileList, FOConsumer openMethod) {
-			this.fileList = fileList;
-			this.openMethod = openMethod;
-		}
+	private class OpenListener extends MouseAdapter
+							   implements ActionListener {
 
 		public void mouseClicked(MouseEvent e) {
 			if (e.getClickCount() >= 2)
@@ -206,7 +241,7 @@ class FileMenu extends JFrame {
 					openMethod.accept(selectedFile.getName());
 				else {
 					RBFSFolder folder = (RBFSFolder)selectedFile;
-					fileList.setListData(listToArray(folder.getChildFiles()));
+					fileList.setListData(listToArray(folder.getFiles()));
 				}
 			}
 		}
