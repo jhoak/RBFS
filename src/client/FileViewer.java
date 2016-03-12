@@ -41,7 +41,8 @@ public class FileViewer extends JFrame {
 		JMenu searchMenu = makeSearchMenu();
 
 		JMenuBar menuBar = new JMenuBar();
-		addItemsToMenuBar(menuBar, fileMenu)
+		addItemsToMenuBar(menuBar, fileMenu);
+		
 		if (editable) {
 			JMenu editMenu = makeEditMenu();
 			addItemsToMenuBar(menuBar, editMenu);
@@ -51,7 +52,7 @@ public class FileViewer extends JFrame {
 	}
 
 	private JTextArea initializeTextArea() {
-		JTextArea textArea = new JTextArea(origContents);
+		JTextArea textArea = new JTextArea(originalContents);
 		textArea.setLineWrap(true);
 		textArea.setEditable(editable);
 		return textArea;
@@ -62,10 +63,13 @@ public class FileViewer extends JFrame {
 		if (editable) {
 			JMenuItem save = new JMenuItem("Save");
 			save.setAccelerator(KeyStroke.getKeyStroke("ctrl S"));
+			save.addActionListener(new SaveListener());
 			addItemsToMenu(fileMenu, save);
 		}
 		JMenuItem exit = new JMenuItem("Exit");
 		exit.setAccelerator(KeyStroke.getKeyStroke("ctrl W"));
+		exit.addActionListener(new ExitListener());
+		
 		addItemsToMenu(fileMenu, exit);
 		return fileMenu;
 	}
@@ -74,14 +78,20 @@ public class FileViewer extends JFrame {
 		JMenu searchMenu = new JMenu("Search");
 		JMenuItem find = new JMenuItem("Find"),
 				  findRegex = new JMenuItem("Find Regular Expression");
+
 		find.setAccelerator(KeyStroke.getKeyStroke("ctrl F"));
 		findRegex.setAccelerator(KeyStroke.getKeyStroke("ctrl shift F"));
+		find.addActionListener(new FindListener(false));
+		findRegex.addActionListener(new FindListener(true));
 		addItemsToMenu(searchMenu, find, findRegex);
+
 		if (editable) {
 			JMenuItem replace = new JMenuItem("Replace"),
 					  replaceRegex = new JMenuItem("Replace Regular Exp.");
 			replace.setAccelerator(KeyStroke.getKeyStroke("ctrl H"));
 			replaceRegex.setAccelerator(KeyStroke.getKeyStroke("ctrl shift H"));
+			replace.addActionListener(new ReplaceListener(false));
+			replaceRegex.addActionListener(new ReplaceListener(true));
 			addItemsToMenu(searchMenu, replace, replaceRegex);
 		}
 		return searchMenu;
@@ -94,11 +104,18 @@ public class FileViewer extends JFrame {
 				  cut = new JMenuItem("Cut"),
 				  copy = new JMenuItem("Copy"),
 				  paste = new JMenuItem("Paste");
+
 		undo.setAccelerator(KeyStroke.getKeyStroke("ctrl Z"));
 		redo.setAccelerator(KeyStroke.getKeyStroke("ctrl Y"));
 		cut.setAccelerator(KeyStroke.getKeyStroke("ctrl X"));
 		copy.setAccelerator(KeyStroke.getKeyStroke("ctrl C"));
 		paste.setAccelerator(KeyStroke.getKeyStroke("ctrl V"));
+
+		undo.addActionListener(new UndoListener());
+		redo.addActionListener(new RedoListener());
+		cut.addActionListener(new CopyListener(true));
+		copy.addActionListener(new CopyListener(false));
+		paste.addActionListener(new PasteListener());
 
 		addItemsToMenu(editMenu, undo, redo, cut, copy, paste);
 		return editMenu;
@@ -120,7 +137,7 @@ public class FileViewer extends JFrame {
 		}
 	}
 
-	private class QuitListener implements ActionListener {
+	private class ExitListener implements ActionListener {
 
 		public void actionPerformed(ActionEvent e) {
 		}

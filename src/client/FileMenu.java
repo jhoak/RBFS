@@ -27,6 +27,7 @@ class FileMenu extends JFrame {
 
 	private FileMenu(LinkedList<String> roles, Runnable logoutMethod,
 					 FIFunction fileInfoMethod, FOConsumer openMethod) {
+		
 		this.logoutMethod = logoutMethod;
 		this.fileInfoMethod = fileInfoMethod;
 		this.openMethod = openMethod;
@@ -77,13 +78,14 @@ class FileMenu extends JFrame {
 							labelFont.getName(),
 							Font.BOLD,
 							labelFont.getSize()
-		));
+						));
+
 		JButton logoutButton = new JButton("Logout");
 		logoutButton.addActionListener(new ActionListener() {
 										public void actionPerformed(ActionEvent e) {
 											logoutMethod.run();
 										}
-										});
+									   });
 		JPanel topPanel = new JPanel();
 		topPanel.add(topLabel);
 		topPanel.add(logoutButton);
@@ -110,6 +112,7 @@ class FileMenu extends JFrame {
 			   sizeLabel = new JLabel("<Size>"),
 			   dateMadeLabel = new JLabel("<Date created>"),
 			   dateModdedLabel = new JLabel("<Date modified>");
+
 		labels = new LabelSet(nameLabel, authLabel, sizeLabel, sizeLabel, dateMadeLabel, dateModdedLabel);
 
 		JPanel upperPanel = makeUpperDetailsPanel(nameLabel),
@@ -133,6 +136,7 @@ class FileMenu extends JFrame {
 
 	private JPanel makeLowerDetailsPanel(JLabel authLabel, JLabel sizeLabel, 
 												JLabel dateMadeLabel, JLabel dateModdedLabel) {
+		
 		JPanel lowerPanel = new JPanel(new GridLayout(2,2));
 		lowerPanel.add(authLabel);
 		lowerPanel.add(sizeLabel);

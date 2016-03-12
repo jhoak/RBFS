@@ -34,11 +34,14 @@ public class Client {
 
 			sendMessage(name + "\n" + pass + "\n");
 			checkInitialResponse(getResponseHead());
+			
 			String rest = getRestOfResponse();
 			LinkedList<String> roles = getRoles(rest);
+			
 			Runnable logoutMethod = Client::logout;
 			FOConsumer openMethod = (s) -> openFile(s);
 			FIFunction fileInfoMethod = (list) -> getFileInfo(list);
+			
 			fileMenu = FileMenu.make(roles, logoutMethod, fileInfoMethod, openMethod);
 			fileMenu.setVisible(true);
 			login.setVisible(false);
@@ -68,6 +71,7 @@ public class Client {
 	private static String getResponseHead() throws IOException, SocketTimeoutException {
 		InputStreamReader in = new InputStreamReader(cnxn.getInputStream());
 		StringBuilder sb = new StringBuilder();
+		
 		int ch = in.read();
 		while (ch != '\n') {
 			sb.append((char)ch);
@@ -78,6 +82,7 @@ public class Client {
 
 	private static void checkInitialResponse(String message) throws FailedLoginException {
 		String errorMessage = "";
+		
 		if (message.equals("ERROR: BAD LOGIN")) {
 			errorMessage = "Unrecognized username/password combination.";
 		}
@@ -95,6 +100,7 @@ public class Client {
 	private static String getRestOfResponse() throws IOException, SocketTimeoutException {
 		InputStreamReader in = new InputStreamReader(cnxn.getInputStream());
 		StringBuilder sb = new StringBuilder();
+		
 		int ch = in.read();
 		while (ch != -1) {
 			sb.append((char)ch);
@@ -106,8 +112,10 @@ public class Client {
 	private static LinkedList<String> getRoles(String rest) {
 		String[] roleArr = rest.split("\n");
 		LinkedList<String> roles = new LinkedList<>();
+		
 		for (int i = 0; i < roleArr.length; i++)
 			roles.add(roleArr[i]);
+		
 		return roles;
 	}
 
@@ -133,9 +141,10 @@ public class Client {
 			if (responseHead.equals("ERROR: FILE NOT FOUND"))
 				showError("File inaccessible.");
 			else {
+				boolean editable = Boolean.parseBoolean(getResponseHead());
 				String contents = getRestOfResponse();
 				exitViewer();
-				viewer = FileViewer.make(contents);
+				viewer = FileViewer.make(editable, contents);
 				viewer.setVisible(true);
 			}
 		}
@@ -168,12 +177,10 @@ public class Client {
 			return rest;
 		}
 		catch (SocketTimeoutException x) {
-			logout();
 			showError("The server failed to respond.");
 			throw new IOException(x.getMessage());
 		}
 		catch (IOException x) {
-			logout();
 			showError("Failed to communicate with the server.");
 			throw new IOException(x.getMessage());
 		}
@@ -181,8 +188,10 @@ public class Client {
 
 	private static String makeFileInfoCommand(LinkedList<String> roles) {
 		String command = "GET FILES FOR ROLES";
+		
 		for (String s : roles)
 			command = command + "\n" + s.toUpperCase();
+		
 		command = command + ((char)-1);
 		return command;
 	}
