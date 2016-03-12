@@ -13,6 +13,7 @@ public class Client {
 	private static FileMenu fileMenu;
 	private static FileViewer viewer;
 	private static Socket cnxn;
+	private static LinkedList<String> activeRoles;
 
 	public static void main(String[] args) {
 		Consumer<UserPrefs> connectMethod = (prefs) -> connect(prefs);
@@ -126,7 +127,7 @@ public class Client {
 
 	private static void openFile(String fileName) {
 		try {
-			sendMessage("OPEN FILE " + fileName.toUpperCase());
+			sendMessage("OPEN FILE " + fileName.toUpperCase() + (char)-1);
 		
 			String responseHead = getResponseHead();
 			if (responseHead.equals("ERROR: FILE NOT FOUND"))
@@ -163,6 +164,7 @@ public class Client {
 				throw new BadPermissionsException(errorMessage);
 			}
 			
+			activeRoles = roles;
 			return rest;
 		}
 		catch (SocketTimeoutException x) {
