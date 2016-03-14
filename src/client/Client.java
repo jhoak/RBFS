@@ -14,6 +14,7 @@ public class Client {
 	private static FileViewer viewer;
 	private static Socket cnxn;
 	private static LinkedList<String> activeRoles;
+	private static String viewedFile;
 
 	public static void main(String[] args) {
 		Consumer<UserPrefs> connectMethod = (prefs) -> connect(prefs);
@@ -133,20 +134,43 @@ public class Client {
 		login.setVisible(true);
 	}
 
-	private static void openFile(String fileName) {
+	private static void openFile(String fileName) throws BadPermissionsException {
 		try {
 			sendMessage("OPEN FILE " + fileName.toUpperCase() + (char)-1);
 		
 			String responseHead = getResponseHead();
 			if (responseHead.equals("ERROR: FILE NOT FOUND"))
 				showError("File inaccessible.");
+			else if (responseHead.equals("ERROR: BAD PERMISSIONS"))
+				throw new BadPermissionsException("Error: File inaccessible with current permissions.");
 			else {
+				exitViewer();
 				boolean editable = Boolean.parseBoolean(getResponseHead());
 				String contents = getRestOfResponse();
-				exitViewer();
-				viewer = FileViewer.make(editable, contents);
+				
+				FOConsumer saveFcn = (s) -> saveFile(s);
+				viewer = FileViewer.make(editable, contents, saveFcn);
 				viewer.setVisible(true);
+				viewedFile = fileName;
 			}
+		}
+		catch (SocketTimeoutException x) {
+			logout();
+			showError("The server failed to respond.");
+		}
+		catch (IOException x) {
+			logout();
+			showError("Failed to communicate with the server.");
+		}
+	}
+
+	private static void saveFile(String newContents) throws BadPermissionsException {
+		try {
+			sendMessage("SAVE FILE " + viewedFile.toUpperCase() + (char)-1);
+
+			String responseHead = getResponseHead();
+			if (responseHead.equals("ERROR: BAD PERMISSIONS"))
+				throw new BadPermissionsException("Error: File unable to be edited with current permissions.");
 		}
 		catch (SocketTimeoutException x) {
 			logout();
@@ -177,12 +201,10 @@ public class Client {
 			return rest;
 		}
 		catch (SocketTimeoutException x) {
-			showError("The server failed to respond.");
-			throw new IOException(x.getMessage());
+			throw new IOException("Error: The server failed to respond.");
 		}
 		catch (IOException x) {
-			showError("Failed to communicate with the server.");
-			throw new IOException(x.getMessage());
+			throw new IOException("Error: Failed to communicate with the server.");
 		}
 	}
 

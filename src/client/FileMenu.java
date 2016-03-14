@@ -197,13 +197,13 @@ class FileMenu extends JFrame {
 												catch (Client.BadPermissionsException x) {
 													JOptionPane.showMessageDialog(
 														null,
-														"Error: Inadequate permissions."
+														x.getMessage()
 													);
 												}
 												catch (IOException x) {
 													JOptionPane.showMessageDialog(
 														null,
-														"Error: Failed to communicate with server."
+														x.getMessage()
 													);
 													logoutMethod.run();
 												}
@@ -244,8 +244,14 @@ class FileMenu extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 			RBFSFile selectedFile = fileList.getSelectedValue();
 			if (selectedFile != null) {
-				if (selectedFile.getStorageType() == StorageType.FILE)
-					openMethod.accept(selectedFile.getName());
+				if (selectedFile.getStorageType() == StorageType.FILE) {
+					try {
+						openMethod.accept(selectedFile.getName());
+					}
+					catch (Client.BadPermissionsException x) {
+						JOptionPane.showMessageDialog(null, x.getMessage());
+					}
+				}
 				else {
 					RBFSFolder folder = (RBFSFolder)selectedFile;
 					fileList.setListData(listToArray(folder.getFiles()));

@@ -1,5 +1,5 @@
 package client;
 
 interface FOConsumer {
-	void accept(String s);
+	void accept(String s) throws Client.BadPermissionsException;
 }
