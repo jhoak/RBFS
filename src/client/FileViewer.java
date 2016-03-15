@@ -5,14 +5,15 @@ import java.awt.datatransfer.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.function.*;
+import java.util.regex.*;
 import javax.swing.*;
 import javax.swing.event.*;
 
 public class FileViewer extends JFrame {
 
+	private static final String KEYSTRING = "Failed to paste text from RBFS file viewer!";
 	private static final int WIDTH = 400,
 							 HEIGHT = 300;
-	private static final String KEYSTRING = "Failed to paste text from RBFS file viewer!";
 
 	private JTextArea textArea;
 	private String clipboard;
@@ -44,13 +45,13 @@ public class FileViewer extends JFrame {
 		JMenu searchMenu = makeSearchMenu();
 
 		JMenuBar menuBar = new JMenuBar();
-		addItemsToMenuBar(menuBar, fileMenu);
+		addComponents(menuBar, fileMenu);
 		
 		if (editable) {
 			JMenu editMenu = makeEditMenu();
-			addItemsToMenuBar(menuBar, editMenu);
+			addComponents(menuBar, editMenu);
 		}
-		addItemsToMenuBar(menuBar, searchMenu);
+		addComponents(menuBar, searchMenu);
 		return menuBar;
 	}
 
@@ -58,7 +59,7 @@ public class FileViewer extends JFrame {
 		JTextArea textArea = new JTextArea(fileContents);
 		textArea.setLineWrap(true);
 		textArea.setEditable(editable);
-		textArea.getDocument().addDocumentListener(new TextChangedListener());
+		textArea.getDocument().addDocumentListener(new TextChangedFrameListener());
 		return textArea;
 	}
 
@@ -66,15 +67,12 @@ public class FileViewer extends JFrame {
 		JMenu fileMenu = new JMenu("File");
 		if (editable) {
 			JMenuItem save = new JMenuItem("Save");
-			save.setAccelerator(KeyStroke.getKeyStroke("ctrl S"));
-			save.addActionListener(new SaveListener(saveFcn));
-			addItemsToMenu(fileMenu, save);
+			addFunction(save, "ctrl S", new SaveListener(saveFcn));
+			addComponents(fileMenu, save);
 		}
 		JMenuItem exit = new JMenuItem("Exit");
-		exit.setAccelerator(KeyStroke.getKeyStroke("ctrl W"));
-		exit.addActionListener(new ExitListener());
-		
-		addItemsToMenu(fileMenu, exit);
+		addFunction(exit, "ctrl W", new ExitListener());
+		addComponents(fileMenu, exit);
 		return fileMenu;
 	}
 
@@ -82,21 +80,16 @@ public class FileViewer extends JFrame {
 		JMenu searchMenu = new JMenu("Search");
 		JMenuItem find = new JMenuItem("Find"),
 				  findRegex = new JMenuItem("Find Regular Expression");
-
-		find.setAccelerator(KeyStroke.getKeyStroke("ctrl F"));
-		findRegex.setAccelerator(KeyStroke.getKeyStroke("ctrl shift F"));
-		find.addActionListener(new FindListener(false));
-		findRegex.addActionListener(new FindListener(true));
-		addItemsToMenu(searchMenu, find, findRegex);
+		addFunction(find, "ctrl F", new FindListener(false))
+		addFunction(findRegex, "ctrl shift F", new FindListener(true));
+		addComponents(searchMenu, find, findRegex);
 
 		if (editable) {
 			JMenuItem replace = new JMenuItem("Replace"),
 					  replaceRegex = new JMenuItem("Replace Regular Exp.");
-			replace.setAccelerator(KeyStroke.getKeyStroke("ctrl H"));
-			replaceRegex.setAccelerator(KeyStroke.getKeyStroke("ctrl shift H"));
-			replace.addActionListener(new ReplaceListener(false));
-			replaceRegex.addActionListener(new ReplaceListener(true));
-			addItemsToMenu(searchMenu, replace, replaceRegex);
+			addFunction(replace, "ctrl H", new ReplaceListener(false));
+			addFunction(replaceRegex, "ctrl shift H", new ReplaceListener(true)); 
+			addComponents(searchMenu, replace, replaceRegex);
 		}
 		return searchMenu;
 	}
@@ -109,33 +102,112 @@ public class FileViewer extends JFrame {
 				  copy = new JMenuItem("Copy"),
 				  paste = new JMenuItem("Paste");
 
-		undo.setAccelerator(KeyStroke.getKeyStroke("ctrl Z"));
-		redo.setAccelerator(KeyStroke.getKeyStroke("ctrl Y"));
-		cut.setAccelerator(KeyStroke.getKeyStroke("ctrl X"));
-		copy.setAccelerator(KeyStroke.getKeyStroke("ctrl C"));
-		paste.setAccelerator(KeyStroke.getKeyStroke("ctrl V"));
+		addFunction(undo, "ctrl Z", new UndoListener());
+		addFunction(redo, "ctrl Y", new RedoListener());
+		addFunction(cut, "ctrl X", new CopyListener(true));
+		addFunction(copy, "ctrl C", new CopyListener(false));
+		addFunction(paste, "ctrl V", new PasteListener());
 
-		undo.addActionListener(new UndoListener());
-		redo.addActionListener(new RedoListener());
-		cut.addActionListener(new CopyListener(true));
-		copy.addActionListener(new CopyListener(false));
-		paste.addActionListener(new PasteListener());
-
-		addItemsToMenu(editMenu, undo, redo, cut, copy, paste);
+		addComponents(editMenu, undo, redo, cut, copy, paste);
 		return editMenu;
 	}
 
-	private static void addItemsToMenuBar(JMenuBar menuBar, JMenu... menus) {
-		for (JMenu menu : menus)
-			menuBar.add(menu);
+	private static void addComponents(Container container, Component... comps) {
+		for (Component c : comps)
+			comps.add(c);
 	}
 
-	private static void addItemsToMenu(JMenu menu, JMenuItem... items) {
-		for (JMenuItem item : items)
-			menu.add(item);
+	private static void addFunction(JMenuItem item, String hotkey, ActionListener listener) {
+		item.setAccelerator(KeyStroke.getKeyStroke(hotkey));
+		item.addActionListener(listener);
 	}
 
-	private class TextChangedListener implements DocumentListener {
+	private static int occurrences(String literal, String input) {
+		int count = 0,
+			index = 0;
+		while (input.indexOf(literal, index) != -1) {
+			count++;
+			index += literal.length();
+		}
+		return count;
+	}
+
+	private static int occurrencesRegex(String regex, String input) {
+		Pattern p = Pattern.compile(regex);
+		Matcher m = p.matcher(input);
+
+		int count = 0;
+		while (!m.hitEnd()) {
+			if (m.find())
+				count++;
+		}
+
+		return count;
+	}
+
+	private class FindPanel extends JPanel {
+
+		private boolean useRegex;
+		private JTextField findField;
+		private JLabel countLabel;
+
+		private FindPanel(boolean useRegex) {
+			this.useRegex = useRegex;
+
+			String labelString = useRegex ? "Find Regular Expression:"
+										  : "Find:";
+			JLabel findLabel = new JLabel(labelString);
+			findField = new JTextField(12);
+			countLabel = new JLabel("0/0");
+			JButton prev = new JButton("Previous"),
+					next = new JButton("Next"),
+					close = new JButton("Close");
+
+			close.addActionListener(new ActionListener(){
+				public void actionPerformed(ActionEvent e) {
+					this.setVisible(false);
+				}
+			});
+
+			Runnable updateTFMethod = () -> update(false);
+			findField.getDocument().addDocumentListener(new TextChangedPanelListener(updateTFMethod));
+
+			Runnable updateTAMethod = () -> update(true);
+			textArea.getDocument().addDocumentListener(new TextChangedPanelListener(updateTAMethod));
+
+			addComponents(this, label, findField, countLabel, prev, next, close);
+			setVisible(false);
+		}
+
+		private static void update(boolean textAreaChanged) {
+			int numOccurrences;
+			String toFind = findField.getText(),
+				   toSearch = textArea.getText();
+			if (useRegex)
+				numOccurrences = occurrencesRegex(toFind, toSearch);
+			else
+				numOccurrences = occurrences(toFind, toSearch);
+
+			if (textAreaChanged) {
+				countLabel.setText("0/" + numOccurrences);
+				textArea.setSelectionEnd(textArea.getSelectionStart());
+			}
+			else {
+				goToFirstOccurrence(toFind, toSearch);
+			}
+		}
+
+		private static void goToFirstOccurrence(String toFind, String toSearch) {
+			if (useRegex) {
+
+			} 
+			else {
+				
+			}
+		}
+	}
+
+	private class TextChangedFrameListener implements DocumentListener {
     
     	public void insertUpdate(DocumentEvent e) {
         	removeUpdate(e);
@@ -143,6 +215,27 @@ public class FileViewer extends JFrame {
     	
     	public void removeUpdate(DocumentEvent e) {
     		setTitle(getTitle() + "*");
+    	}
+    	
+    	public void changedUpdate(DocumentEvent e) {
+        	// Not used because plaintext
+    	}
+	}
+
+	private class TextChangedPanelListener implements DocumentListener {
+
+		private Runnable updateMethod;
+
+		private TextChangedPanelListener(Runnable updateMethod) {
+			this.updateMethod = updateMethod;
+		}
+
+		public void insertUpdate(DocumentEvent e) {
+        	updateMethod.run();
+    	}
+    	
+    	public void removeUpdate(DocumentEvent e) {
+    		updateMethod.run();
     	}
     	
     	public void changedUpdate(DocumentEvent e) {
@@ -226,11 +319,23 @@ public class FileViewer extends JFrame {
 
 	private class FindListener implements ActionListener {
 
+		private boolean useRegex;
+
+		private FindListener(boolean useRegex) {
+			this.useRegex = useRegex;
+		}
+
 		public void actionPerformed(ActionEvent e) {
 		}
 	}
 
 	private class ReplaceListener implements ActionListener {
+
+		private boolean useRegex;
+
+		private ReplaceListener(boolean useRegex) {
+			this.useRegex = useRegex;
+		}
 
 		public void actionPerformed(ActionEvent e) {
 		}
