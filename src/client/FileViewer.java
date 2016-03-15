@@ -18,6 +18,14 @@ public class FileViewer extends JFrame {
 	private JTextArea textArea;
 	private String clipboard;
 	private boolean editable;
+	private JPanel[] helperPanels;
+
+	private enum Panels {
+		FIND,
+		FIND_REGEX,
+		REPLACE,
+		REPLACE_REGEX
+	}
 
 	static FileViewer make(boolean editable, String fileContents, FOConsumer saveFcn) {
 		return new FileViewer(editable, fileContents, saveFcn);
@@ -38,6 +46,13 @@ public class FileViewer extends JFrame {
 
 		JMenuBar menuBar = makeMenuBar(saveFcn);
 		add(menuBar, BorderLayout.NORTH);
+
+		helperPanels = new JPanel[4];
+		helperPanels[Panels.FIND] = new FindPanel(false);
+		helperPanels[Panels.FIND_REGEX] = new FindPanel(true);
+
+		for (int i = 0; i < helperPanels.length; i++)
+			add(helperPanels[i], BorderLayout.SOUTH);
 	}
 
 	private JMenuBar makeMenuBar(FOConsumer saveFcn) {
@@ -122,27 +137,9 @@ public class FileViewer extends JFrame {
 		item.addActionListener(listener);
 	}
 
-	private static int occurrences(String literal, String input) {
-		int count = 0,
-			index = 0;
-		while (input.indexOf(literal, index) != -1) {
-			count++;
-			index += literal.length();
-		}
-		return count;
-	}
-
-	private static int occurrencesRegex(String regex, String input) {
-		Pattern p = Pattern.compile(regex);
-		Matcher m = p.matcher(input);
-
-		int count = 0;
-		while (!m.hitEnd()) {
-			if (m.find())
-				count++;
-		}
-
-		return count;
+	private void closeHelpers() {
+		for (int i = 0; i < helperPanels.length; i++)
+			helperPanels[i].setVisible(false);
 	}
 
 	private class FindPanel extends JPanel {
@@ -150,8 +147,10 @@ public class FileViewer extends JFrame {
 		private boolean useRegex;
 		private JTextField findField;
 		private JLabel countLabel;
+		private StringFinder finder;
+		private int numMatches, currentMatch;
 
-		private FindPanel(boolean useRegex) {
+		FindPanel(boolean useRegex) {
 			this.useRegex = useRegex;
 
 			String labelString = useRegex ? "Find Regular Expression:"
@@ -163,6 +162,10 @@ public class FileViewer extends JFrame {
 					next = new JButton("Next"),
 					close = new JButton("Close");
 
+			Runnable nextFcn = () -> next(),
+					 prevFcn = () -> prev();
+			next.addActionListener(new FindButtonListener(nextFcn));
+			prev.addActionListener(new FindButtonListener(prevFcn));
 			close.addActionListener(new ActionListener(){
 				public void actionPerformed(ActionEvent e) {
 					this.setVisible(false);
@@ -179,30 +182,62 @@ public class FileViewer extends JFrame {
 			setVisible(false);
 		}
 
-		private static void update(boolean textAreaChanged) {
-			int numOccurrences;
-			String toFind = findField.getText(),
-				   toSearch = textArea.getText();
-			if (useRegex)
-				numOccurrences = occurrencesRegex(toFind, toSearch);
-			else
-				numOccurrences = occurrences(toFind, toSearch);
+		private void update(boolean textAreaChanged) {
+			if (findField.getText().equals("")) {
+				countLabel.setText("0/0");
+				numMatches = 0;
+				currentMatch = 0;
+				return;
+			}
 
-			if (textAreaChanged) {
-				countLabel.setText("0/" + numOccurrences);
+			finder = new StringFinder(findField.getText(), textArea.getText(), useRegex);
+			numMatches = finder.numMatches();
+			if (numMatches == 0) {
+				currentMatch = 0;
+				countLabel.setText("0/0");
 				textArea.setSelectionEnd(textArea.getSelectionStart());
 			}
 			else {
-				goToFirstOccurrence(toFind, toSearch);
+				currentMatch = 1;
+				countLabel.setText("1/" + numMatches);
+				int start = finder.start(),
+					end = finder.end();
+				textArea.select(start, end);
 			}
 		}
 
-		private static void goToFirstOccurrence(String toFind, String toSearch) {
-			if (useRegex) {
+		private void next() {
+			if (findField.getText().equals("") || numMatches == 0)
+				return;
 
-			} 
-			else {
-				
+			finder.next();
+			currentMatch = (currentMatch + 1) % numMatches;
+		}
+
+		private void prev() {
+			if (findField.getText().equals("") || numMatches == 0)
+				return;
+
+			finder.prev();
+			currentMatch = (currentMatch - 1) % numMatches;
+		}
+
+		private class FindButtonListener implements ActionListener {
+
+			private Runnable action;
+
+			FindButtonListener(Runnable action) {
+				this.action = action;
+			}
+
+			public void actionPerformed(ActionEvent e) {
+				action.run();
+
+				countLabel.setText((currentMatch + 1) + "/" + numMatches;
+
+				int start = finder.start(),
+					end = finder.end();
+				textArea.select(start, end);
 			}
 		}
 	}
@@ -326,6 +361,12 @@ public class FileViewer extends JFrame {
 		}
 
 		public void actionPerformed(ActionEvent e) {
+			closeHelpers();
+
+			if (useRegex)
+				helperPanels[Panels.FIND_REGEX].setVisible(true);
+			else
+				helperPanels[Panels.FIND].setVisible(true);
 		}
 	}
 
