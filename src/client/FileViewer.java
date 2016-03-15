@@ -48,8 +48,10 @@ public class FileViewer extends JFrame {
 		add(menuBar, BorderLayout.NORTH);
 
 		helperPanels = new JPanel[4];
-		helperPanels[Panels.FIND] = new FindPanel(false);
-		helperPanels[Panels.FIND_REGEX] = new FindPanel(true);
+		helperPanels[Panels.FIND.ordinal()] = new FindPanel(false);
+		helperPanels[Panels.FIND_REGEX.ordinal()] = new FindPanel(true);
+		helperPanels[Panels.REPLACE.ordinal()] = new ReplacePanel(false);
+		helperPanels[Panels.REPLACE_REGEX.ordinal()] = new ReplacePanel(true);
 
 		for (int i = 0; i < helperPanels.length; i++)
 			add(helperPanels[i], BorderLayout.SOUTH);
@@ -95,7 +97,7 @@ public class FileViewer extends JFrame {
 		JMenu searchMenu = new JMenu("Search");
 		JMenuItem find = new JMenuItem("Find"),
 				  findRegex = new JMenuItem("Find Regular Expression");
-		addFunction(find, "ctrl F", new FindListener(false))
+		addFunction(find, "ctrl F", new FindListener(false));
 		addFunction(findRegex, "ctrl shift F", new FindListener(true));
 		addComponents(searchMenu, find, findRegex);
 
@@ -129,7 +131,7 @@ public class FileViewer extends JFrame {
 
 	private static void addComponents(Container container, Component... comps) {
 		for (Component c : comps)
-			comps.add(c);
+			container.add(c);
 	}
 
 	private static void addFunction(JMenuItem item, String hotkey, ActionListener listener) {
@@ -140,6 +142,42 @@ public class FileViewer extends JFrame {
 	private void closeHelpers() {
 		for (int i = 0; i < helperPanels.length; i++)
 			helperPanels[i].setVisible(false);
+	}
+
+	private class FindListener implements ActionListener {
+
+		private boolean useRegex;
+
+		private FindListener(boolean useRegex) {
+			this.useRegex = useRegex;
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			closeHelpers();
+
+			if (useRegex)
+				helperPanels[Panels.FIND_REGEX.ordinal()].setVisible(true);
+			else
+				helperPanels[Panels.FIND.ordinal()].setVisible(true);
+		}
+	}
+
+	private class ReplaceListener implements ActionListener {
+
+		private boolean useRegex;
+
+		private ReplaceListener(boolean useRegex) {
+			this.useRegex = useRegex;
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			closeHelpers();
+
+			if (useRegex)
+				helperPanels[Panels.REPLACE_REGEX.ordinal()].setVisible(true);
+			else
+				helperPanels[Panels.REPLACE.ordinal()].setVisible(true);
+		}
 	}
 
 	private class FindPanel extends JPanel {
@@ -168,7 +206,8 @@ public class FileViewer extends JFrame {
 			prev.addActionListener(new FindButtonListener(prevFcn));
 			close.addActionListener(new ActionListener(){
 				public void actionPerformed(ActionEvent e) {
-					this.setVisible(false);
+					JPanel thisPanel = (JPanel)close.getParent();
+					thisPanel.setVisible(false);
 				}
 			});
 
@@ -178,7 +217,7 @@ public class FileViewer extends JFrame {
 			Runnable updateTAMethod = () -> update(true);
 			textArea.getDocument().addDocumentListener(new TextChangedPanelListener(updateTAMethod));
 
-			addComponents(this, label, findField, countLabel, prev, next, close);
+			addComponents(this, findLabel, findField, countLabel, prev, next, close);
 			setVisible(false);
 		}
 
@@ -190,7 +229,7 @@ public class FileViewer extends JFrame {
 				return;
 			}
 
-			finder = new StringFinder(findField.getText(), textArea.getText(), useRegex);
+			finder = StringFinder.make(findField.getText(), textArea.getText(), useRegex);
 			numMatches = finder.numMatches();
 			if (numMatches == 0) {
 				currentMatch = 0;
@@ -218,7 +257,7 @@ public class FileViewer extends JFrame {
 			if (findField.getText().equals("") || numMatches == 0)
 				return;
 
-			finder.prev();
+			finder.previous();
 			currentMatch = (currentMatch - 1) % numMatches;
 		}
 
@@ -233,13 +272,16 @@ public class FileViewer extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				action.run();
 
-				countLabel.setText((currentMatch + 1) + "/" + numMatches;
+				countLabel.setText((currentMatch + 1) + "/" + numMatches);
 
 				int start = finder.start(),
 					end = finder.end();
 				textArea.select(start, end);
 			}
 		}
+	}
+
+	private class ReplacePanel extends JPanel {
 	}
 
 	private class TextChangedFrameListener implements DocumentListener {
@@ -349,36 +391,6 @@ public class FileViewer extends JFrame {
 
 				textArea.replaceSelection(replacementText);
 			}
-		}
-	}
-
-	private class FindListener implements ActionListener {
-
-		private boolean useRegex;
-
-		private FindListener(boolean useRegex) {
-			this.useRegex = useRegex;
-		}
-
-		public void actionPerformed(ActionEvent e) {
-			closeHelpers();
-
-			if (useRegex)
-				helperPanels[Panels.FIND_REGEX].setVisible(true);
-			else
-				helperPanels[Panels.FIND].setVisible(true);
-		}
-	}
-
-	private class ReplaceListener implements ActionListener {
-
-		private boolean useRegex;
-
-		private ReplaceListener(boolean useRegex) {
-			this.useRegex = useRegex;
-		}
-
-		public void actionPerformed(ActionEvent e) {
 		}
 	}
 

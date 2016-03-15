@@ -1,5 +1,6 @@
 package client;
 
+import java.util.LinkedList;
 import java.util.regex.*;
 
 class StringFinder {
@@ -60,7 +61,7 @@ class StringFinder {
 
 	int end() {
 		if (matches.length != 0)
-			return matches[matchIndex].getLast();
+			return matches[matchIndex].getSecond();
 		else
 			return -1;
 	}
@@ -88,8 +89,8 @@ class StringFinder {
 			return first;
 		}
 
-		int getLast() {
-			return last;
+		int getSecond() {
+			return second;
 		}
 	}
 }
