@@ -8,6 +8,7 @@ import java.util.function.*;
 import java.util.regex.*;
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.undo.*;
 
 public class FileViewer extends JFrame {
 
@@ -19,6 +20,7 @@ public class FileViewer extends JFrame {
 	private String clipboard;
 	private boolean editable;
 	private JPanel[] helperPanels;
+	private UndoManager undoMgr;
 
 	private enum Panels {
 		FIND,
@@ -39,6 +41,7 @@ public class FileViewer extends JFrame {
 		setDefaultCloseOperation(HIDE_ON_CLOSE);
 
 		this.editable = editable;
+		undoMgr = new UndoManager();
 
 		textArea = initializeTextArea(fileContents);
 		JScrollPane scrollPane = new JScrollPane(textArea);
@@ -76,7 +79,10 @@ public class FileViewer extends JFrame {
 		JTextArea textArea = new JTextArea(fileContents);
 		textArea.setLineWrap(true);
 		textArea.setEditable(editable);
-		textArea.getDocument().addDocumentListener(new TextChangedFrameListener());
+
+		Document document = textArea.getDocument();
+		document.addDocumentListener(new TextChangedFrameListener());
+		document.addUndoableEditListener(new EditListener());
 		return textArea;
 	}
 
@@ -397,12 +403,30 @@ public class FileViewer extends JFrame {
 	private class UndoListener implements ActionListener {
 
 		public void actionPerformed(ActionEvent e) {
+			try {
+				undoMgr.undo();
+			}
+			catch (CannotUndoException x) {
+				// Do nothing. We're good here!
+			}
 		}
 	}
 
 	private class RedoListener implements ActionListener {
 
 		public void actionPerformed(ActionEvent e) {
+			try {
+				undoMgr.redo();
+			}
+			catch (CannotRedoException x) {
+				// Do nothing. We're good here!
+			}
 		}
+	}
+
+	private class EditListener implements UndoableEditListener {
+		public void undoableEditHappened(UndoableEditEvent e) {
+			undoMgr.addEdit(e.getEdit());
+        }
 	}
 }
