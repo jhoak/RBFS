@@ -8,6 +8,7 @@ import java.util.function.*;
 import java.util.regex.*;
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.text.*;
 import javax.swing.undo.*;
 
 public class FileViewer extends JFrame {
@@ -227,6 +228,14 @@ public class FileViewer extends JFrame {
 			setVisible(false);
 		}
 
+		String getFindText() {
+			return findField.getText();
+		}
+
+		int getNumMatches() {
+			return numMatches;
+		}
+
 		private void update(boolean textAreaChanged) {
 			if (findField.getText().equals("")) {
 				countLabel.setText("0/0");
@@ -288,6 +297,57 @@ public class FileViewer extends JFrame {
 	}
 
 	private class ReplacePanel extends JPanel {
+
+		private FindPanel findPanel;
+		private JTextField replaceField;
+
+		ReplacePanel(boolean useRegex) {
+			setLayout(new GridLayout(2,1));
+			findPanel = new FindPanel(useRegex);
+			JPanel lowerPanel = buildLowerPanel();
+			addComponents(this, findPanel, lowerPanel);
+			setVisible(false);
+		}
+
+		private JPanel buildLowerPanel() {
+			JLabel repLabel = new JLabel("Replace with:");
+			replaceField = new JTextField(12);
+
+			JPanel buttonPanel = new JPanel(new GroupLayout(this));
+			JButton replace = new JButton("Replace"),
+					replaceAll = new JButton("Replace All");
+
+			replace.addActionListener(new ReplaceListener());
+			replaceAll.addActionListener(new ReplaceAllListener());
+
+			addComponents(buttonPanel, replace, replaceAll);
+
+			JPanel lowerPanel = new JPanel();
+			addComponents(lowerPanel, repLabel, replaceField, buttonPanel);
+			return lowerPanel;
+		}
+
+		private class ReplaceListener implements ActionListener {
+			public void actionPerformed(ActionEvent e) {
+				String findText = findPanel.getFindText();
+				int numMatches = findPanel.getNumMatches();
+				if (findText.equals("") || numMatches == 0)
+					return;
+
+
+			}
+		}
+
+		private class ReplaceAllListener implements ActionListener {
+			public void actionPerformed(ActionEvent e) {
+				String findText = findPanel.getFindText();
+				int numMatches = findPanel.getNumMatches();
+				if (findText.equals("") || numMatches == 0)
+					return;
+
+				
+			}
+		}
 	}
 
 	private class TextChangedFrameListener implements DocumentListener {
