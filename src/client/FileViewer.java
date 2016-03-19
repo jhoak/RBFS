@@ -187,6 +187,8 @@ public class FileViewer extends JFrame {
 		}
 	}
 
+	/*
+
 	private class FindPanel extends JPanel {
 
 		private boolean useRegex;
@@ -294,7 +296,7 @@ public class FileViewer extends JFrame {
 				textArea.select(start, end);
 			}
 		}
-	}
+	}*/
 
 	private class ReplacePanel extends JPanel {
 
@@ -329,23 +331,25 @@ public class FileViewer extends JFrame {
 
 		private class ReplaceListener implements ActionListener {
 			public void actionPerformed(ActionEvent e) {
-				String findText = findPanel.getFindText();
-				int numMatches = findPanel.getNumMatches();
-				if (findText.equals("") || numMatches == 0)
-					return;
-
-
+				IntPair match = findPanel.getSelectedMatch();
+				if (match != null) {
+					textArea.select(match.getFirst(), match.getSecond());
+					textArea.replaceSelection(replaceField.getText());
+				}
 			}
 		}
 
 		private class ReplaceAllListener implements ActionListener {
 			public void actionPerformed(ActionEvent e) {
-				String findText = findPanel.getFindText();
-				int numMatches = findPanel.getNumMatches();
-				if (findText.equals("") || numMatches == 0)
-					return;
-
-				
+				IntPair[] matches = findPanel.getMatches();
+				if (matches.length != 0) {
+					String replacementText = replaceField.getText();
+					for (int i = matches.length - 1; i >= 0; i--) {
+						IntPair match = matches[i];
+						textArea.select(match.getFirst(), match.getSecond());
+						textArea.replaceSelection(replacementText);
+					}
+				}
 			}
 		}
 	}
