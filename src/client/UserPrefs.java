@@ -159,7 +159,7 @@ class UserPrefs {
 	}
 
 	static class LoadException extends FileNotFoundException {
-	
+
 		LoadException() {
 			this(null);
 		}
