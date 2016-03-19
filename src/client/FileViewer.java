@@ -187,18 +187,18 @@ public class FileViewer extends JFrame {
 		}
 	}
 
-	/*
-
 	private class FindPanel extends JPanel {
 
 		private boolean useRegex;
 		private JTextField findField;
 		private JLabel countLabel;
-		private StringFinder finder;
-		private int numMatches, currentMatch;
+		private IntPair[] matches;
+		private int selectedMatchIndex;
 
 		FindPanel(boolean useRegex) {
 			this.useRegex = useRegex;
+			matches = new IntPair[0];
+			selectedMatchIndex = 0;
 
 			String labelString = useRegex ? "Find Regular Expression:"
 										  : "Find:";
@@ -230,73 +230,78 @@ public class FileViewer extends JFrame {
 			setVisible(false);
 		}
 
-		String getFindText() {
-			return findField.getText();
+		IntPair[] getMatches() {
+			return matches;
 		}
 
-		int getNumMatches() {
-			return numMatches;
+		IntPair getSelectedMatch() {
+			if (matches.length != 0)
+				return matches[selectedMatchIndex];
+			else
+				return null;
+		}
+
+		private void next() {
+			if (findField.getText().equals("") || matches.length == 0)
+				return;
+
+			selectedMatchIndex = (selectedMatchIndex + 1) % matches.length;
+		}
+
+		private void prev() {
+			if (findField.getText().equals("") || matches.length == 0)
+				return;
+
+			selectedMatchIndex = (selectedMatchIndex - 1) % matches.length;
+			if (selectedMatchIndex < 0)
+				selectedMatchIndex += matches.length;
 		}
 
 		private void update(boolean textAreaChanged) {
 			if (findField.getText().equals("")) {
 				countLabel.setText("0/0");
-				numMatches = 0;
-				currentMatch = 0;
+				matches = new IntPair[0];
+				selectedMatchIndex = 0;
+				textArea.setSelectionEnd(textArea.getSelectionStart());
 				return;
 			}
 
-			finder = StringFinder.make(findField.getText(), textArea.getText(), useRegex);
-			numMatches = finder.numMatches();
-			if (numMatches == 0) {
-				currentMatch = 0;
+			SearchResults results = StringFinder.search(findField.getText(), textArea.getText(), useRegex);
+			matches = results.getMatches();
+			if (matches.length == 0) {
+				selectedMatchIndex = 0;
 				countLabel.setText("0/0");
 				textArea.setSelectionEnd(textArea.getSelectionStart());
 			}
 			else {
-				currentMatch = 1;
-				countLabel.setText("1/" + numMatches);
-				int start = finder.start(),
-					end = finder.end();
+				selectedMatchIndex = 0;
+				countLabel.setText("1/" + matches.length);
+				int start = matches[0].getFirst(),
+					end = matches[0].getSecond();
 				textArea.select(start, end);
 			}
-		}
-
-		private void next() {
-			if (findField.getText().equals("") || numMatches == 0)
-				return;
-
-			finder.next();
-			currentMatch = (currentMatch + 1) % numMatches;
-		}
-
-		private void prev() {
-			if (findField.getText().equals("") || numMatches == 0)
-				return;
-
-			finder.previous();
-			currentMatch = (currentMatch - 1) % numMatches;
 		}
 
 		private class FindButtonListener implements ActionListener {
 
 			private Runnable action;
 
-			FindButtonListener(Runnable action) {
-				this.action = action;
+			private FindButtonListener(Runnable axn) {
+				action = axn;
 			}
 
 			public void actionPerformed(ActionEvent e) {
 				action.run();
 
-				countLabel.setText((currentMatch + 1) + "/" + numMatches);
+				countLabel.setText((selectedMatchIndex + 1) + "/" + matches.length);
 
-				int start = finder.start(),
-					end = finder.end();
+				IntPair match = matches[selectedMatchIndex];
+				int start = match.getFirst(),
+					end = match.getSecond();
 				textArea.select(start, end);
 			}
 		}
-	}*/
+	}
 
 	private class ReplacePanel extends JPanel {
 
