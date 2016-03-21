@@ -2,15 +2,15 @@ package rbfs.client.util;
 
 import javax.swing.JLabel;
 
-class LabelSet {
+public class LabelSet {
 
 	private JLabel[] labels;
 
-	LabelSet(JLabel... labels) {
+	public LabelSet(JLabel... labels) {
 		this.labels = labels;
 	}
 
-	void setText(String... strs) {
+	public void setText(String... strs) {
 		if (strs.length != labels.length)
 			throw new IllegalArgumentException("Error: unequal number of strings and labels");
 

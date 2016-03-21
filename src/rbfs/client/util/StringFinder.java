@@ -3,11 +3,11 @@ package rbfs.client.util;
 import java.util.LinkedList;
 import java.util.regex.*;
 
-class StringFinder {
+public class StringFinder {
 
 	private StringFinder() {}
 
-	static SearchResults search(String toFind, String toSearch, boolean regex) {
+	public static SearchResults search(String toFind, String toSearch, boolean regex) {
 		LinkedList<IntPair> matchList = new LinkedList<>();
 
 		if (regex) {

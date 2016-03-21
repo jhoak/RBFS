@@ -8,7 +8,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.text.*;
 import javax.swing.undo.*;
-import rbfs.client.fcn.FOConsumer;
+import rbfs.client.fcn.*;
 import rbfs.client.util.*;
 
 public class FileViewer extends JFrame {
@@ -410,7 +410,7 @@ public class FileViewer extends JFrame {
 				if (title.endsWith("*"))
 					setTitle(title.substring(0, title.length() - 1));
 			}
-			catch (Client.BadPermissionsException x) {
+			catch (BadPermissionsException x) {
 				JOptionPane.showMessageDialog(null, x.getMessage());
 			}
 		}

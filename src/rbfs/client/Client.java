@@ -6,6 +6,7 @@ import java.util.function.*;
 import java.util.LinkedList;
 import javax.swing.JOptionPane;
 import rbfs.client.fcn.*;
+import rbfs.client.util.BadPermissionsException;
 
 public class Client {
 

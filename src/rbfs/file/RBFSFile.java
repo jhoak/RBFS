@@ -1,43 +1,43 @@
 package rbfs.file;
 
-class RBFSFile {
+public class RBFSFile {
 
 	private FileAttributes attrs;
 	private RBFSFolder parent;
 
-	RBFSFile(FileAttributes attrs) {
+	public RBFSFile(FileAttributes attrs) {
 		this.attrs = attrs;
 	}
 
-	String getName() {
+	public String getName() {
 		return attrs.getName();
 	}
 
-	String getAuthor() {
+	public String getAuthor() {
 		return attrs.getAuthor();
 	}
 
-	String getSize() {
+	public String getSize() {
 		return attrs.getSize();
 	}
 
-	String getDateMade() {
+	public String getDateMade() {
 		return attrs.getDateMade();
 	}
 
-	String getDateModded() {
+	public String getDateModded() {
 		return attrs.getDateModded();
 	}
 
-	RBFSFolder getParent() {
+	public RBFSFolder getParent() {
 		return parent;
 	}
 
-	void setParent(RBFSFolder parent) {
+	public void setParent(RBFSFolder parent) {
 		this.parent = parent;
 	}
 
-	StorageType getStorageType() {
+	public StorageType getStorageType() {
 		return StorageType.FILE;
 	}
 }

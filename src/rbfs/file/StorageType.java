@@ -1,6 +1,6 @@
 package rbfs.file;
 
-enum StorageType {
+public enum StorageType {
 	FILE,
 	FOLDER
 }

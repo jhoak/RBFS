@@ -1,10 +1,10 @@
 package rbfs.file;
 
-class FileAttributes {
+public class FileAttributes {
 
 	private String name, author, size, dateMade, dateModded;
 
-	FileAttributes(String name, String author, String size, String dateMade, String dateModded) {
+	public FileAttributes(String name, String author, String size, String dateMade, String dateModded) {
 		this.name = name;
 		this.author = author;
 		this.size = size;
@@ -12,23 +12,23 @@ class FileAttributes {
 		this.dateModded = dateModded;
 	}
 
-	String getName() {
+	public String getName() {
 		return name;
 	}
 
-	String getAuthor() {
+	public String getAuthor() {
 		return author;
 	}
 
-	String getSize() {
+	public String getSize() {
 		return size;
 	}
 
-	String getDateMade() {
+	public String getDateMade() {
 		return dateMade;
 	}
 
-	String getDateModded() {
+	public String getDateModded() {
 		return dateModded;
 	}
 }

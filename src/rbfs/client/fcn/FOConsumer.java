@@ -1,8 +1,8 @@
 package rbfs.client.fcn;
 
-import rbfs.client.BadPermissionsException;
+import rbfs.client.util.BadPermissionsException;
 
 @FunctionalInterface
-interface FOConsumer {
-	void accept(String s) throws BadPermissionsException;
+public interface FOConsumer {
+	public void accept(String s) throws BadPermissionsException;
 }

@@ -1,19 +1,19 @@
 package rbfs.client.util;
 
-class IntPair {
+public class IntPair {
 
 	private int first, second;
 
-	IntPair(int first, int second) {
+	public IntPair(int first, int second) {
 		this.first = first;
 		this.second = second;
 	}
 
-	int getFirst() {
+	public int getFirst() {
 		return first;
 	}
 
-	int getSecond() {
+	public int getSecond() {
 		return second;
 	}
 }

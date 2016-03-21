@@ -4,7 +4,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.function.Consumer;
 import javax.swing.*;
-import rbfs.client.util.UserPrefs;
 
 class LoginWindow extends JFrame {
 

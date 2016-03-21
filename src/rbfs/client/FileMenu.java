@@ -8,7 +8,7 @@ import java.util.function.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import rbfs.client.fcn.*;
-import rbfs.client.util.LabelSet;
+import rbfs.client.util.*;
 import rbfs.file.*;
 
 class FileMenu extends JFrame {

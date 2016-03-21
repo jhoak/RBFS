@@ -2,34 +2,34 @@ package rbfs.file;
 
 import java.util.LinkedList;
 
-class RBFSFolder extends RBFSFile {
+public class RBFSFolder extends RBFSFile {
 
 	private LinkedList<RBFSFile> files;
 
-	RBFSFolder(FileAttributes attrs) {
+	public RBFSFolder(FileAttributes attrs) {
 		super(attrs);
 	}
 
-	LinkedList<RBFSFile> getFiles() {
+	public LinkedList<RBFSFile> getFiles() {
 		return (LinkedList<RBFSFile>)files.clone();
 	}
 
-	void addFile(RBFSFile file) {
+	public void addFile(RBFSFile file) {
 		files.add(file);
 		file.setParent(this);
 	}
 
-	void addFiles(LinkedList<RBFSFile> files) {
+	public void addFiles(LinkedList<RBFSFile> files) {
 		for (RBFSFile f : files)
 			addFile(f);
 	}
 
 	@Override
-	StorageType getStorageType() {
+	public StorageType getStorageType() {
 		return StorageType.FOLDER;
 	}
 
-	static RBFSFolder makeDirectoryTree(String input) {
+	public static RBFSFolder makeDirectoryTree(String input) {
 		String[] tokens = input.split("\n");
 		FileAttributes attrs = new FileAttributes("", "", "", "", "");
 		RBFSFolder root = new RBFSFolder(attrs);

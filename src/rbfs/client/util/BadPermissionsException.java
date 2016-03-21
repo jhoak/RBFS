@@ -1,4 +1,4 @@
-package rbfs.client;
+package rbfs.client.util;
 
 public class BadPermissionsException extends Exception {
 
