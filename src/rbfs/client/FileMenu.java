@@ -1,4 +1,4 @@
-package client;
+package rbfs.client;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -7,6 +7,9 @@ import java.util.LinkedList;
 import java.util.function.*;
 import javax.swing.*;
 import javax.swing.event.*;
+import rbfs.client.fcn.*;
+import rbfs.client.util.LabelSet;
+import rbfs.file.*;
 
 class FileMenu extends JFrame {
 
@@ -50,22 +53,22 @@ class FileMenu extends JFrame {
 			rolesBox = makeRolesBox(roles);
 
 		fileList.addListSelectionListener(new ListSelectionListener() {
-											public void valueChanged(ListSelectionEvent e) {
-												RBFSFile file = fileList.getSelectedValue();
-												if (file != null) {
-													String name = file.getName();
-													if (name.startsWith(".. ("))
-														name = name.substring(4, name.length() - 1);
-													labels.setText(
-														name,
-														"Author: " + file.getAuthor(),
-														"Size: " + file.getSize(),
-														"Date created: " + file.getDateMade(),
-														"Date modified: " + file.getDateModded()
-													);
-												}
-											}
-										  });
+			public void valueChanged(ListSelectionEvent e) {
+				RBFSFile file = fileList.getSelectedValue();
+				if (file != null) {
+					String name = file.getName();
+					if (name.startsWith(".. ("))
+						name = name.substring(4, name.length() - 1);
+					labels.setText(
+						name,
+						"Author: " + file.getAuthor(),
+						"Size: " + file.getSize(),
+						"Date created: " + file.getDateMade(),
+						"Date modified: " + file.getDateModded()
+					);
+				}
+			}
+		});
 
 		JPanel bottomPanel = makeBottomPanel(detailsBox, rolesBox);
 		add(bottomPanel, BorderLayout.SOUTH);
@@ -180,35 +183,35 @@ class FileMenu extends JFrame {
 		JComboBox<String> roleComboBox = new JComboBox<>(roleArr);
 		roleComboBox.addActionListener(new ActionListener() {
 
-											private LinkedList<String> selectedRoles = new LinkedList<>();
+			private LinkedList<String> selectedRoles = new LinkedList<>();
 
-											public void actionPerformed(ActionEvent e) {
-												JComboBox<String> box = (JComboBox<String>)e.getSource();
-												String role = (String)box.getSelectedItem();
-												if (selectedRoles.contains(role))
-													selectedRoles.remove(role);
-												else
-													selectedRoles.add(role);
-												try {
-													String svrResponse = fileInfoMethod.accept(selectedRoles);
-													RBFSFolder root = RBFSFolder.makeDirectoryTree(svrResponse);
-													fileList.setListData(listToArray(root.getFiles()));
-												}
-												catch (Client.BadPermissionsException x) {
-													JOptionPane.showMessageDialog(
-														null,
-														x.getMessage()
-													);
-												}
-												catch (IOException x) {
-													JOptionPane.showMessageDialog(
-														null,
-														x.getMessage()
-													);
-													logoutMethod.run();
-												}
-											}
-								  		});
+			public void actionPerformed(ActionEvent e) {
+				JComboBox<String> box = (JComboBox<String>)e.getSource();
+				String role = (String)box.getSelectedItem();
+				if (selectedRoles.contains(role))
+					selectedRoles.remove(role);
+				else
+					selectedRoles.add(role);
+				try {
+					String svrResponse = fileInfoMethod.accept(selectedRoles);
+					RBFSFolder root = RBFSFolder.makeDirectoryTree(svrResponse);
+					fileList.setListData(listToArray(root.getFiles()));
+				}
+				catch (BadPermissionsException x) {
+					JOptionPane.showMessageDialog(
+						null,
+						x.getMessage()
+					);
+				}
+				catch (IOException x) {
+					JOptionPane.showMessageDialog(
+						null,
+						x.getMessage()
+					);
+					logoutMethod.run();
+				}
+			}
+  		});
 
 		JPanel adderPanel = new JPanel();
 		adderPanel.add(addLabel);
@@ -248,7 +251,7 @@ class FileMenu extends JFrame {
 					try {
 						openMethod.accept(selectedFile.getName());
 					}
-					catch (Client.BadPermissionsException x) {
+					catch (BadPermissionsException x) {
 						JOptionPane.showMessageDialog(null, x.getMessage());
 					}
 				}

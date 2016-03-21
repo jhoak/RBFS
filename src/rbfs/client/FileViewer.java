@@ -1,4 +1,4 @@
-package client;
+package rbfs.client;
 
 import java.awt.*;
 import java.awt.datatransfer.*;
@@ -8,6 +8,8 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.text.*;
 import javax.swing.undo.*;
+import rbfs.client.fcn.FOConsumer;
+import rbfs.client.util.*;
 
 public class FileViewer extends JFrame {
 

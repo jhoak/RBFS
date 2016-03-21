@@ -1,4 +1,4 @@
-package client;
+package rbfs.client;
 
 import java.io.*;
 import java.net.InetAddress;

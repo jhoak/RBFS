@@ -1,10 +1,11 @@
-package client;
+package rbfs.client;
 
 import java.io.*;
 import java.net.*;
 import java.util.function.*;
 import java.util.LinkedList;
 import javax.swing.JOptionPane;
+import rbfs.client.fcn.*;
 
 public class Client {
 
@@ -235,17 +236,6 @@ public class Client {
 		}
 
 		FailedLoginException(String message) {
-			super(message);
-		}
-	}
-
-	static class BadPermissionsException extends Exception {
-
-		BadPermissionsException() {
-			this(null);
-		}
-
-		BadPermissionsException(String message) {
 			super(message);
 		}
 	}

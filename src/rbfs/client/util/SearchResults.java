@@ -1,4 +1,4 @@
-package client;
+package rbfs.client.util;
 
 import java.util.LinkedList;
 
