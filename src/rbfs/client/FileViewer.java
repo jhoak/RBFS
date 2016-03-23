@@ -11,14 +11,23 @@ import javax.swing.undo.*;
 import rbfs.client.fcn.*;
 import rbfs.client.util.*;
 
+/**
+This window allows users to read or write a selected file, given that they have
+the appropriate permissions to open it in the first place. If writing is
+enabled, the user may edit the file currently being read, using the viewer as a
+lightweight text editor.
+
+@author	James Hoak
+*/
+
 public class FileViewer extends JFrame {
 
-	private static final String KEYSTRING = "Failed to paste text from RBFS file viewer!";
+	private static final StringSelection KEYSTRING = new StringSelection("Failed to paste text from RBFS file viewer!");
 	private static final int WIDTH = 400,
 							 HEIGHT = 300;
 
 	private JTextArea textArea;
-	private String clipboard;
+	private String savedText;
 	private boolean editable;
 	private JPanel[] helperPanels;
 	private UndoManager undoMgr;
@@ -432,15 +441,12 @@ public class FileViewer extends JFrame {
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			clipboard = textArea.getSelectedText();
+			savedText = textArea.getSelectedText();
 			if (cut)
 				textArea.replaceSelection("");
 
-			// The next piece of code is adapted from the following SO page:
-			// http://stackoverflow.com/questions/6710350/copying-text-to-the-clipboard-using-java
 			Clipboard board = Toolkit.getDefaultToolkit().getSystemClipboard();
-			StringSelection copyFoil = new StringSelection(KEYSTRING);
-			board.setContents(copyFoil, null);
+			board.setContents(KEYSTRING, null);
 		}
 	}
 
@@ -455,12 +461,13 @@ public class FileViewer extends JFrame {
 			catch (Exception x) {
 				JOptionPane.showMessageDialog(null, "Error: Failed to display file.");
 				setVisible(false);
+				return;
 			}
 
-			String replacementText;
 			if (contents != null) {
+				String replacementText;
 				if (contents.equals(KEYSTRING))
-					replacementText = clipboard;
+					replacementText = savedText;
 				else
 					replacementText = contents;
 

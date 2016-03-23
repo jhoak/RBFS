@@ -11,6 +11,16 @@ import rbfs.client.fcn.*;
 import rbfs.client.util.*;
 import rbfs.file.*;
 
+/**
+This window is the first screen users see upon connecting to a RBFS server.
+Here, they can choose their active roles and navigate the server's file
+hierarchy, choosing to read and edit files on the server (given that they have
+the required permissions for reading/editing). File metadata is also shown on
+this screen for convenience.
+
+@author	James Hoak
+*/
+
 class FileMenu extends JFrame {
 
 	private static final int WIDTH = 600,

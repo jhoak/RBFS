@@ -8,6 +8,14 @@ import javax.swing.JOptionPane;
 import rbfs.client.fcn.*;
 import rbfs.client.util.BadPermissionsException;
 
+/**
+The main class used by the client program. Running this class by default opens
+a window for the user to log in, though the main job of this class is to handle
+networking and manage the various windows that are part of the application.
+
+@author	James Hoak
+*/
+
 public class Client {
 
 	private static LoginWindow login;
@@ -167,7 +175,7 @@ public class Client {
 
 	private static void saveFile(String newContents) throws BadPermissionsException {
 		try {
-			sendMessage("SAVE FILE " + viewedFile.toUpperCase() + (char)-1);
+			sendMessage("SAVE FILE\n" + viewedFile.toUpperCase() + "\n" + newContents + "\n" + (char)-1);
 
 			String responseHead = getResponseHead();
 			if (responseHead.equals("ERROR: BAD PERMISSIONS"))
