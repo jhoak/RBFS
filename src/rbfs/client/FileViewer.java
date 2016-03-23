@@ -22,7 +22,9 @@ lightweight text editor.
 
 public class FileViewer extends JFrame {
 
-	private static final StringSelection KEYSTRING = new StringSelection("Failed to paste text from RBFS file viewer!");
+	private static final StringSelection KEYSTRING = new StringSelection(
+		"Failed to paste text from RBFS file viewer!"
+	);
 	private static final int WIDTH = 400,
 							 HEIGHT = 300;
 
