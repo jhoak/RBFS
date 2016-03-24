@@ -24,7 +24,7 @@ public class RBFSFile {
 
 	/**
 	Gets the name of the file.
-	@returns The name of the file.
+	@return The name of the file.
 	*/
 	public String getName() {
 		return attrs.getName();
@@ -32,7 +32,7 @@ public class RBFSFile {
 
 	/**
 	Gets the name of the file's author.
-	@returns The name of the file's author.
+	@return The name of the file's author.
 	*/
 	public String getAuthor() {
 		return attrs.getAuthor();
@@ -40,7 +40,7 @@ public class RBFSFile {
 
 	/**
 	Gets the size of the file.
-	@returns The size of the file.
+	@return The size of the file.
 	*/
 	public String getSize() {
 		return attrs.getSize();
@@ -48,7 +48,7 @@ public class RBFSFile {
 
 	/**
 	Gets the date the file was created.
-	@returns The date the file was created.
+	@return The date the file was created.
 	*/
 	public String getDateMade() {
 		return attrs.getDateMade();
@@ -56,7 +56,7 @@ public class RBFSFile {
 
 	/**
 	Gets the date the file was last modified.
-	@returns The date the file was last modified.
+	@return The date the file was last modified.
 	*/
 	public String getDateModded() {
 		return attrs.getDateModded();
@@ -64,7 +64,7 @@ public class RBFSFile {
 
 	/**
 	Gets the parent folder of this file.
-	@returns The parent folder of this file.
+	@return The parent folder of this file.
 	*/
 	public RBFSFolder getParent() {
 		return parent;

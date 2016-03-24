@@ -72,6 +72,7 @@ class LoginWindow extends JFrame {
 	/**
 	Factory method to create a new window.
 	@param connectMethod The method to use to connect to a remote server.
+	@return Returns a new login window.
 	*/
 	static LoginWindow make(Consumer<UserPrefs> connectMethod) {
 		return new LoginWindow(connectMethod);

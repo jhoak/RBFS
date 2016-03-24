@@ -32,7 +32,7 @@ public class FileAttributes {
 
 	/**
 	Gets the name of the file.
-	@returns The name of the file.
+	@return The name of the file.
 	*/
 	public String getName() {
 		return name;
@@ -40,7 +40,7 @@ public class FileAttributes {
 
 	/**
 	Gets the name of the file's author.
-	@returns The name of the file's author.
+	@return The name of the file's author.
 	*/
 	public String getAuthor() {
 		return author;
@@ -48,7 +48,7 @@ public class FileAttributes {
 
 	/**
 	Gets the size of the file.
-	@returns The size of the file.
+	@return The size of the file.
 	*/
 	public String getSize() {
 		return size;
@@ -56,7 +56,7 @@ public class FileAttributes {
 
 	/**
 	Gets the date the file was created.
-	@returns The date the file was created.
+	@return The date the file was created.
 	*/
 	public String getDateMade() {
 		return dateMade;
@@ -64,7 +64,7 @@ public class FileAttributes {
 
 	/**
 	Gets the date the file was last modified.
-	@returns The date the file was last modified.
+	@return The date the file was last modified.
 	*/
 	public String getDateModded() {
 		return dateModded;

@@ -62,14 +62,15 @@ public class RBFSFolder extends RBFSFile {
 	/**
 	Constructs a "directory tree" based on the input and returns the root.
 
-	The input String must be formatted as follows, with spaces replaced by \n:
-		folder Folder1 Author1 64KB 12/1/15 1/1/16 > file F1 Auth 4B 12/1/15 1/2/16 <
+	The input String must be formatted as follows, with spaces replaced by \n
+	(and with &lt; and &gt;):
+		folder Folder1 Author1 64KB 12/1/15 1/1/16 &gt; file F1 Auth 4B 12/1/15 1/2/16 &lt;
 
 	Files are declared one by one in the input String. Each declaration starts
 	with the type (folder or file) followed by the file's metadata (name, author,
 	size, date created, and date modified). If the type is a folder, this must
-	be immediately followed by a '>', with zero or more subfiles/subfolders
-	declared inside the folder. Then a '<' character follows, and the folder is
+	be immediately followed by a &gt;, with zero or more subfiles/subfolders
+	declared inside the folder. Then a &lt; character follows, and the folder is
 	said to contain all of the files/folders declared within the brackets.
 
 	The top-level declarations (i.e. ones that are NOT made within a folder)
