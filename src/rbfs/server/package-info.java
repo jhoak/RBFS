@@ -1,5 +1,5 @@
 /**
-This package holds all of the classes/subpackages that are used for the server.
+This package holds all of the server-specific code.
 @author James Hoak
 */
 package rbfs.server;
