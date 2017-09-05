@@ -21,8 +21,9 @@ public final class GeneralUtils {
 
     /**
      * From the given collection of argument names and their values, returns the name of the first
-     * arg whose value is null. Should generally be used for null checking parameters in methods.
-     * Both arguments (arrays) must be non-null and have the same length.
+     * arg whose value is null. Should generally be used for null checking parameters in methods
+     * (unless these methods have like 1 argument). Both arguments (arrays) must be non-null and
+     * must have the same length.
      * @param argNames The names of the arguments.
      * @param argValues The corresponding values for these arguments.
      * @return The name of the first arg whose value is null, or null if there are no such args.
