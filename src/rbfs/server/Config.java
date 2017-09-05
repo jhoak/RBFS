@@ -109,7 +109,7 @@ final class Config {
                 // Skip blank lines and lines starting with a hash, '#'
                 if (!Pattern.matches("^(|#.*)$", line)) {
                     // ... but try to match others against a typical "assignment" line
-                    Pattern assignmentPattern = Pattern.compile("^([a-zA-Z]+?)=(.+)$");
+                    Pattern assignmentPattern = Pattern.compile("^([a-zA-Z]+?)=(.*)$");
                     Matcher assignmentMatcher = assignmentPattern.matcher(line);
                     if (assignmentMatcher.matches()) {
                         fileSettings.put(
@@ -201,32 +201,15 @@ final class Config {
         private T overrideVal;
 
         /**
-         * Initializes a new Setting.
+         * Initializes a new Setting. This should NOT be used by the outer Config code.
          * @param name The name of the corresponding config item
          * @param isValid A function that tells whether a given value is valid for this config item
          * @param defaultVal The default value for this setting
          * @param overrideVal The override value for this setting
-         * @throws Error If name or isValid are null, or if the default value is invalid.
          */
         private Setting(String name, Function<T, Boolean> isValid, T defaultVal, T overrideVal) {
-            // Make sure name and isValid are non-null
-            String[] importantArgNames = {"name", "isValid"};
-            Object[] importantArgValues = {name, isValid};
-            String nullArgName = GeneralUtils.firstNullArg(importantArgNames, importantArgValues);
-            if (nullArgName != null)
-                throw new Error("Null parameter '" + nullArgName + "'");
             this.name = name;
             this.isValid = isValid;
-
-            // Make sure default value is valid
-            if (!isValid.apply(defaultVal)) {
-                String err = String.format(
-                        "Config item '%s' given invalid default value '%s'",
-                        name,
-                        defaultVal
-                );
-                throw new Error(err);
-            }
             this.defaultVal = defaultVal;
 
             if (overrideVal == null) {
@@ -240,6 +223,42 @@ final class Config {
             else {
                 this.overrideVal = overrideVal;
             }
+        }
+
+        /**
+         * Creates and returns a new Setting. Should be used by the outer Config code.
+         * @param name The name of the corresponding config item
+         * @param isValid A function that tells whether a given value is valid for this config item
+         * @param defaultVal The default value for this setting
+         * @param overrideVal The override value for this setting
+         * @param <T> The type of value this setting represents.
+         * @return The new Setting using the provided params.
+         * @throws FailedInitException If name or isValid are null, or if the default value is
+         * invalid.
+         */
+        private static <T> Setting<T> makeSetting(
+                String name,
+                Function<T, Boolean> isValid,
+                T defaultVal,
+                T overrideVal
+        ) throws FailedInitException {
+            // Make sure name and isValid are non-null
+            String[] importantArgNames = {"name", "isValid"};
+            Object[] importantArgValues = {name, isValid};
+            String nullArgName = GeneralUtils.firstNullArg(importantArgNames, importantArgValues);
+            if (nullArgName != null)
+                throw new FailedInitException("Null parameter '" + nullArgName + "'");
+
+            // Make sure default value is valid
+            if (!isValid.apply(defaultVal)) {
+                String err = String.format(
+                        "Config item '%s' given invalid default value '%s'",
+                        name,
+                        defaultVal
+                );
+                throw new FailedInitException(err);
+            }
+            return new Setting<>(name, isValid, defaultVal, overrideVal);
         }
 
         /**
@@ -264,6 +283,17 @@ final class Config {
             }
             else
                 return false;
+        }
+
+        /**
+         * Represents an exception that happened when a Setting failed to initialize properly.
+         */
+        private static class FailedInitException extends Exception {
+            /**
+             * Creates a new Exception with the given message.
+             * @param msg The message to include in the exception
+             */
+            private FailedInitException(String msg) { super(msg); }
         }
     }
 }
