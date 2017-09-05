@@ -3,4 +3,5 @@
 *.class
 *.bat
 *.txt
+*.iml
 .idea
