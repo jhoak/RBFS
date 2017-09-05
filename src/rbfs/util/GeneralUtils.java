@@ -29,8 +29,7 @@ public final class GeneralUtils {
      * @return The name of the first arg whose value is null, or null if there are no such args.
      * @throws IllegalArgumentException If any arg name (not value) is null.
      */
-    public static String firstNullArg(String[] argNames, Object[] argValues)
-    throws IllegalArgumentException {
+    public static String firstNullArg(String[] argNames, Object[] argValues) {
         if (anyNull(argNames))
             throw new IllegalArgumentException("Null value passed as arg name");
 
@@ -101,8 +100,7 @@ public final class GeneralUtils {
          * true but the arrays are not of the same length.
          */
         @SuppressWarnings("unchecked")
-        public static <S, T> Pair<S, T>[] zip(S[] sArr, T[] tArr, boolean requireSameLength)
-        throws IllegalArgumentException {
+        public static <S, T> Pair<S, T>[] zip(S[] sArr, T[] tArr, boolean requireSameLength) {
             if (sArr == null)
                 throw new IllegalArgumentException("Null passed as param value of sArr");
             else if (tArr == null)
