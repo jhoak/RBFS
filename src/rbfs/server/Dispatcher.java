@@ -61,6 +61,8 @@ final class Dispatcher {
      */
     void run() {
         // TODO log dispatcher start and other stuff here
+        // TODO try to restart the socket if closed? or other restart() method?
+
         while (true) {
             try {
                 Socket connection = socket.accept();
@@ -68,7 +70,7 @@ final class Dispatcher {
                 handler.start();
             }
             catch (IOException x) {
-                // TODO log IO error here. but keep going though
+                // TODO log IO error here (it'll just be from accept()). but keep going plz
             }
             catch (Exception x) {
                 // TODO log crash here
