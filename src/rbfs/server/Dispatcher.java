@@ -1,4 +1,4 @@
-// TODO multithread so i can tell dispatcher to stop or something
+// TODO multi-thread so i can tell dispatcher to stop or something
 package rbfs.server;
 
 import java.io.*;
@@ -16,29 +16,29 @@ final class Dispatcher {
     private ServerSocket socket;
 
     /* A method for getting a thread that will handle an incoming connection. */
-    private Function<Socket, Thread> getConnectionHandler;
+    private Function<Socket, Runnable> getConnectionHandler;
 
     /**
      * Creates a new Dispatcher. It will listen for connections on the given socket and requisition
      * a new thread for each new connection. The Dispatcher will not run until run() is called.
      * @param socket The ServerSocket on which the Dispatcher will listen for connections
-     * @param getConnectionHandler A method to get a new Thread that will handle an incoming
+     * @param getConnectionHandler A method to get a new Runnable that will handle an incoming
      * connection
      */
-    private Dispatcher(ServerSocket socket, Function<Socket, Thread> getConnectionHandler) {
+    private Dispatcher(ServerSocket socket, Function<Socket, Runnable> getConnectionHandler) {
         this.socket = socket;
         this.getConnectionHandler = getConnectionHandler;
     }
 
     /**
      * Creates a new Dispatcher. It will not run until run() is called.
-     * @param getConnectionHandler A method that returns a Thread that will handle a given
+     * @param getConnectionHandler A method that returns a Runnable that will handle a given
      * connection.
      * @return A new Dispatcher that may be started with its run() method.
      * @throws FailedInitException If the Dispatcher fails to initialize. Common reasons include
      * passing a null value for the getConnectionHandler method, as well as passing a bad port.
      */
-    static Dispatcher makeDispatcher(Function<Socket, Thread> getConnectionHandler)
+    static Dispatcher makeDispatcher(Function<Socket, Runnable> getConnectionHandler)
     throws FailedInitException {
         if (getConnectionHandler == null)
             throw new FailedInitException("Failed to make Dispatcher (null getConnectionHandler)");
@@ -66,8 +66,8 @@ final class Dispatcher {
         while (true) {
             try {
                 Socket connection = socket.accept();
-                Thread handler = getConnectionHandler.apply(connection);
-                handler.start();
+                Runnable handler = getConnectionHandler.apply(connection);
+                handler.run();
             }
             catch (IOException x) {
                 // TODO log IO error here (it'll just be from accept()). but keep going plz
