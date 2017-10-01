@@ -1,7 +1,6 @@
-*New*
-*Old.*
 *.class
 *.bat
 *.txt
 *.iml
 .idea
+*.db
