@@ -13,6 +13,18 @@ public final class GeneralUtils {
      * @return True if any of the given objects are null, and false otherwise.
      */
     public static boolean anyNull(Object... objects) {
+        return anyNullInArray(objects);
+    }
+
+    /**
+     * Returns true if any of the given objects in the array are null.
+     * @param objects The array of objects to check against null.
+     * @return True if any of the given objects are null, and false otherwise.
+     * @throws IllegalArgumentException If null is passed for the value of `objects`.
+     */
+    public static boolean anyNullInArray(Object[] objects) {
+        if (objects == null)
+            throw new IllegalArgumentException("Null arg passed.");
         for (Object o : objects)
             if (o == null)
                 return true;
@@ -23,16 +35,15 @@ public final class GeneralUtils {
      * From the given collection of argument names and their values, returns the name of the first
      * arg whose value is null. Should generally be used for null checking parameters in methods
      * (unless these methods have like 1 argument). Both arguments (arrays) must be non-null and
-     * must have the same length.
+     * must have the same length. argNames must not have null values in it.
      * @param argNames The names of the arguments.
      * @param argValues The corresponding values for these arguments.
      * @return The name of the first arg whose value is null, or null if there are no such args.
-     * @throws IllegalArgumentException If any arg name (not value) is null.
+     * @throws IllegalArgumentException If any arg name (not value) is null; if either argument to
+     * this method is null; or if the array lengths do not match.
      */
     public static String firstNullArg(String[] argNames, Object[] argValues) {
-        if (anyNull(argNames))
-            throw new IllegalArgumentException("Null value passed as arg name");
-
+        validateFirstNullArgInputs(argNames, argValues);
         Pair<String, Object>[] args = Pair.zip(argNames, argValues, true);
         for (Pair<String, Object> p : args) {
             if (p.getSecond() == null) {
@@ -41,6 +52,25 @@ public final class GeneralUtils {
         }
         return null;
     }
+
+    /**
+     * Validates the input for firstNullArg().
+     * @param argNames The names of the arguments.
+     * @param argValues The corresponding values for these arguments.
+     * @throws IllegalArgumentException If any arg name (not value) is null; if either argument to
+     * this method is null; or if the array lengths do not match.
+     */
+    public static void validateFirstNullArgInputs(String[] argNames, Object[] argValues) {
+        if (argNames == null)
+            throw new IllegalArgumentException("argnames is null.");
+        else if (argValues == null)
+            throw new IllegalArgumentException("argValues is null.");
+        else if (argNames.length != argValues.length)
+            throw new IllegalArgumentException("Input array lengths do not match.");
+        else if (anyNullInArray(argNames))
+            throw new IllegalArgumentException("Null value passed as a single arg name");
+    }
+
 
     /**
      * Represents a pair of values.
