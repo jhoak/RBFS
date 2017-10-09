@@ -1,10 +1,18 @@
 package rbfs.server;
 
+import java.math.BigInteger;
 import java.sql.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Random;
+
 import rbfs.util.GeneralUtils;
 
 /**
  * Handles running queries against the database and retrieving the results.
+ * TODO clean up session keys every so often?
+ * TODO null check
+ * TODO comment af
  * @author James Hoak
  * @version 1.0
  */
@@ -17,13 +25,14 @@ public class DBUtils {
      * @throws DBQueryFailedException If the query resulted in an exception.
      * @throws IllegalArgumentException If sql is null.
      */
-    public static ResultSet runQuery(String sql) throws DBConnectionFailedException,
-            DBQueryFailedException {
+    public static List<Object[]> runQuery(String sql, boolean full)
+            throws DBConnectionFailedException, DBQueryFailedException {
         if (sql == null)
             throw new IllegalArgumentException("Null arg passed.");
         Connection c = getConnection();
         try {
-            return c.createStatement().executeQuery(sql);
+            ResultSet rs = c.createStatement().executeQuery(sql);
+            return download(rs, full);
         }
         catch (SQLException x) {
             throw new DBQueryFailedException(x.getMessage(), sql);
@@ -67,6 +76,15 @@ public class DBUtils {
         }
     }
 
+    public static BigInteger generateSessionKey() throws DBConnectionFailedException,
+            DBQueryFailedException {
+        BigInteger key;
+        do {
+            key = new BigInteger(2048, new Random(System.currentTimeMillis()));
+        } while (sessionInDb(key));
+        return key;
+    }
+
     /**
      * Attempt to open a connection to the database.
      * @return A Connection representing the newly-opened database connection
@@ -95,6 +113,41 @@ public class DBUtils {
         }
         catch (Exception x) {
             // TODO log this
+        }
+    }
+
+    private static boolean sessionInDb(BigInteger sessionKey) throws DBConnectionFailedException,
+            DBQueryFailedException {
+        String query = "select * from Session where skey = " + sessionKey.toString() + ";";
+        List<Object[]> results = runQuery(query, false);
+        return !results.isEmpty();
+    }
+
+    private static List<Object[]> download(ResultSet rs, boolean full)
+            throws DBConnectionFailedException {
+        try {
+            int cols = rs.getMetaData().getColumnCount();
+            LinkedList<Object[]> resultList = new LinkedList<>();
+            int numDownloadedTuples = 0;
+            while ((full || (numDownloadedTuples < rs.getFetchSize())) && rs.next()) {
+                Object[] tuple = new Object[cols];
+                for (int i = 0; i < cols; i++)
+                    tuple[i] = rs.getObject(i + 1); // columns start at 1
+                resultList.add(tuple);
+                numDownloadedTuples++;
+            }
+            return resultList;
+        }
+        catch (SQLException x) {
+            throw new DBConnectionFailedException("Couldn't download results: " + x.getMessage());
+        }
+        finally {
+            try {
+                rs.close();
+            }
+            catch (SQLException x) {
+                // TODO log this
+            }
         }
     }
 
