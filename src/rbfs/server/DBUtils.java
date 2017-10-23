@@ -12,6 +12,7 @@ import rbfs.util.GeneralUtils;
  * Handles running queries against the database and retrieving the results.
  * TODO clean up session keys every so often?
  * TODO null check
+ * TODO can't do certain stuff w/o a lock (updates, at least)
  * TODO comment af
  * @author James Hoak
  * @version 1.0
@@ -52,7 +53,7 @@ public class DBUtils {
      * @throws IllegalArgumentException If a null value or empty array is passed, or if any of the
      * given statements are null.
      */
-    public static int[] runUpdate(String[] sqls) throws DBConnectionFailedException,
+    public static int[] runUpdate(String... sqls) throws DBConnectionFailedException,
             DBQueryFailedException {
         if (sqls == null)
             throw new IllegalArgumentException("Null arg passed.");
@@ -151,13 +152,19 @@ public class DBUtils {
         }
     }
 
-    public static class DBConnectionFailedException extends Exception {
+    public static class DBException extends Exception {
+        public DBException(String message) {
+            super(message);
+        }
+    }
+
+    public static class DBConnectionFailedException extends DBException {
         public DBConnectionFailedException(String message) {
             super(message);
         }
     }
 
-    public static class DBQueryFailedException extends Exception {
+    public static class DBQueryFailedException extends DBException {
         private String[] sqls;
 
         public DBQueryFailedException(String message, String sql) {
